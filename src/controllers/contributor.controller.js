@@ -47,9 +47,10 @@ contributorController.createBook = async (req, res) => {
         );
     }
 
-    const { courseTitle, courseCode, department, level, docURL } = req.body;
+    const { courseTitle,courseType, courseCode, department, level, docURL } = req.body;
     const newBook = await contributorModel.create({
       courseTitle,
+      courseType,
       courseCode,
       department,
       level,
@@ -61,8 +62,8 @@ contributorController.createBook = async (req, res) => {
     let count = user.noOfContributions["contributions"].length + 1;
     user.noOfContributions["contributions"].push(count);
     await user.save();
-    console.log(user.noOfContributions["contributions"].length);
-    console.log(user);
+    // console.log(user.noOfContributions["contributions"].length);
+    // console.log(user);
 
     // return res.status(200).json(new ResponseMessage("success",200,"Book Created sucessfully",{newBook}))
 
