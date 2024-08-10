@@ -2,17 +2,21 @@ const express = require("express");
 const { json, urlencoded } = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
+const userRouter = require("./routes/user.route");
+const authRouter = require("./routes/auth.route");
+const contributorRouter =  require("./routes/contributor.route")
+const { connectToDb } = require("./services/db.connection");
+const protect = require("./middlewares/auth.middleware");
 
 require("dotenv").config();
 
 
 
 const app = express();
-
 app.use(cors({ origin: "*" }));
-app.use(urlencoded({ extended: true }));
 app.use(json());
-app.use(morgan("tiny"));
+app.use(urlencoded({ extended: true }));
+app.use(morgan("dev"));
 app.disable("x-powered-by"); //less hacker know about our stack
 
 // ROUTES
@@ -24,6 +28,19 @@ app.get("/",(req,res) => {
     status:"success",
   })
 })
+
+/** OTHER ROUTES */
+/**Auth Route */
+app.use('/auth/',authRouter);
+
+// middleware Route
+app.use('/api',protect);
+
+/**User Route */
+app.use("/api/v1/user",userRouter);
+app.use("/api/v1/contributor",contributorRouter);
+
+
 
 
 /**Not found Route */
@@ -39,13 +56,12 @@ app.use("*",(req,res) => {
 const port = process.env.PORT || 4000;
 
 // listen to the server
-const start = () => {
-  app.listen(
-    (port,
-    () => {
+const start =  async() => {
+  // connect to database
+  await connectToDb();
+  app.listen(port,() => {
       console.log(`Sever started at localhost:${port}`);
-    }),
-  );
+    })
 };
 
 module.exports = start;
