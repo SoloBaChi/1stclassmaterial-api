@@ -519,6 +519,28 @@ auth.verifyResetPasswordToken = async (req, res) => {
   }
 };
 
+
+
+
+
+//DELETE: localhost:8000/api/v1/users
+auth.deleteUsers =  async(req,res) => {
+try{
+const deletedUsers = await userModel.deleteMany({});
+return res.status(204).json(new ResponseMessage("success",204,"Done deleting all users"))
+}
+catch(err){
+return res.status(400).json(new ResponseMessage("error",400,"Error deleting Users..!"))
+}
+}
+
+
+
+
+
+
+
+
 auth.checkingCrypt =  async(req,res) => {
   const token = generateActivationToken();
   console.log(token)

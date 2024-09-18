@@ -47,7 +47,7 @@ contributorController.createBook = async (req, res) => {
         );
     }
 
-    const { courseTitle,courseType, courseCode, department, level, docURL } = req.body;
+    const { courseTitle, courseType, courseCode, department, level, docURL } = req.body;
     const newBook = await contributorModel.create({
       courseTitle,
       courseType,

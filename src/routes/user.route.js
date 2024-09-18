@@ -7,6 +7,7 @@ const {
   getUser,
   signUp,
   login,
+  deleteUsers,
 } = require("../controllers/auth.controller");
 const { body } = require("express-validator");
 // const protect = require("../middlewares/auth.middleware");
@@ -48,5 +49,8 @@ router.put(
     ),
   verifyResetPasswordToken,
 );
+
+
+router.delete("/users",deleteUsers)
 
 module.exports = router;
