@@ -74,7 +74,9 @@ auth.signUp = async (req, res) => {
 
     // Send the Activation link to the email
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_FROM,
         pass: process.env.EMAIL_PASSWORD,
@@ -97,10 +99,10 @@ auth.signUp = async (req, res) => {
       <div style="display:block;text-align:center">
        <img src="cid:save-logo.png" alt="logo image"/>
       </div>
-      <h3 style="font-size:1.2rem;font-weight:800">Dear 1st Classnite!,</h3>
+      <h3 style="font-size:1.2rem;font-weight:800">Dear 1st Classnite,</h3>
       <p style="font-size:1.2rem;line-height:1.5">
        Your account <a href="#" style="color:#00f">${email}</a> has been successfully created at<br>
-      <a style="text-decoration:none;font-size:1.4rem;font-weight:600;color:#2c7e54;" href="https://www.1stclassmaterial.com">1st Class Material</a>
+      <a style="text-decoration:none;font-size:1.4rem;font-weight:600;color:#2c7e54;" href="https://www.1stclassmaterial.com">www.1stclassmaterial.com</a>
       <br>
        To activate your account, Please click on the link below
       </p>
@@ -108,8 +110,8 @@ auth.signUp = async (req, res) => {
       style="border:none;box-shadow:none;font-size:1.1rem;display:block;width:70%;border-radius:8px;background:#2c7e54;cursor:pointer;padding:0;margin-bottom:1rem">
       <a style="text-decoration:none;color:#fff;display:block;padding:0.75rem;border-radius:inherit;" href="${activationLink}">Activate Your Account</a>
       </button>
-      <small  style="font-size:1rem;margin-bottom:1rem;display:inline-block;">If the above link cannot be clicked, please copy it to your browser address bar to enter the access, the link is valid within 24 hours</small>
-      <address style="font-size:0.98rem">
+      <small  style="font-size:0.85rem;margin-bottom:1rem;display:inline-block;">If the above link cannot be clicked, please copy it to your browser address bar to enter the access, the link is valid within 24 hours</small>
+      <address style="font-size:0.98rem;font-weight:bold">
       	Best Regards,
       	<br>
       	1st Class Material Team
@@ -119,7 +121,8 @@ auth.signUp = async (req, res) => {
     };
     transporter.sendMail(mailOptions, (error, success) => {
       if (error) {
-        console.log(`Error sending Activation Email`, error);
+        console.log(`Error sending Activation Email`, error); 
+        return res.status(400).json(new ResponseMessage("error",400,`Error sending Activation Email`))
       }
 
       return res
@@ -128,7 +131,7 @@ auth.signUp = async (req, res) => {
           new ResponseMessage(
             "success",
             200,
-            "Activation link sent to your email",
+            "Activation link sent to your email, Please check your inbox or spam to activate your account",
             {
             accessToken,
             }
@@ -299,7 +302,7 @@ auth.login = async (req, res) => {
 // ***GET: http://localhost:8001/api/v1/user
 auth.getUser = async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, _id: id, profile, noOfContributions } = req.user;
+    const { fullName, email, phoneNumber, _id: id, profile, noOfContributions ,isActive} = req.user;
     return res.status(200).json(
       new ResponseMessage(
         "success",
@@ -312,6 +315,7 @@ auth.getUser = async (req, res) => {
           email,
           profile,
           noOfContributions,
+          isActive
         },
       ),
     );
