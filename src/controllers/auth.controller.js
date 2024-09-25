@@ -69,7 +69,7 @@ auth.signUp = async (req, res) => {
     });
 
     // Create an activation link
-    const activationLink = `https://www.1stclassmaterial.com/activate-account?email=${email}&token=${activationToken}`;
+    const activationLink = `https://www.1stclassmaterial.com/activate?email=${email}&token=${activationToken}`;
 
     // Generate Access token
     const accessToken = await newToken(newUser);
