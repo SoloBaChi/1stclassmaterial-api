@@ -52,7 +52,7 @@ const protect = async (req, res, next) => {
     if (!user) {
       return res
         .status(401)
-        .json("error", "Unauthorized Request..something went wrong");
+        .json(new ResponseMessage("error",401,"Unauthorized Request..something went wrong"));
     }
   
     req.user = user;

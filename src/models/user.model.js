@@ -6,33 +6,28 @@ const UserSchema = new Schema(
   {
     fullName: {
       type: String,
-      required: true,
     },
     email: {
       type: String,
       unique: true,
-      required: true,
     },
     password: {
       type: String,
-      required: true,
     },
     confirmPassword: {
-      type: String,
-      required: true,
+      type: String
     },
     phoneNumber: {
       type: Number,
-      required: true,
     },
     department: {
       type: String,
     },
     level: {
-      type: String,
-      default: "100",
+      type:Number,
+      default:100,
     },
-    profile: {
+    profileImg: {
       type: String,
       default: "",
     },
