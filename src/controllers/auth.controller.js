@@ -177,7 +177,9 @@ auth.activateUser = async (req, res) => {
 
     // send email for account comfirmation
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_FROM,
         pass: process.env.EMAIL_PASSWORD,
@@ -187,7 +189,7 @@ auth.activateUser = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_FROM,
       to: user.email,
-      subject: "Customer Account Confirmation",
+      subject: "Account Confirmation",
       attachments: [
         {
           filename: "logo.png",
@@ -398,7 +400,9 @@ auth.sendResetPassowrdToken = async (req, res) => {
 
     //Send the Generated token to the user email
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_FROM,
         pass: process.env.EMAIL_PASSWORD,
