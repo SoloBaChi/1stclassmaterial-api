@@ -36,7 +36,7 @@ auth.signUp = async (req, res) => {
   }
 
   try {
-    const { fullName, email, password, confirmPassword, phoneNumber} = req.body;
+    const { fullName, email, password, confirmPassword, phoneNumber,department,level} = req.body;
     // check if the email exist
     const existingUser = await userModel.findOne({ email: email });
     if (existingUser) {
@@ -62,19 +62,23 @@ auth.signUp = async (req, res) => {
       password: await bcrypt.hash(password, 10),
       confirmPassword: await bcrypt.hash(confirmPassword, 10),
       phoneNumber,
+      department,
+      level,
       activationToken,
-      profile:await generateRandomAvatar(email)
+      profileImg:await generateRandomAvatar(email)
     });
 
     // Create an activation link
-    const activationLink = `https://www.1stclassmaterial.com/activate.html?email=${email}&token=${activationToken}`;
+    const activationLink = `https://www.1stclassmaterial.com/activate?email=${email}&token=${activationToken}`;
 
     // Generate Access token
     const accessToken = await newToken(newUser);
 
     // Send the Activation link to the email
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_FROM,
         pass: process.env.EMAIL_PASSWORD,
@@ -97,10 +101,10 @@ auth.signUp = async (req, res) => {
       <div style="display:block;text-align:center">
        <img src="cid:save-logo.png" alt="logo image"/>
       </div>
-      <h3 style="font-size:1.2rem;font-weight:800">Dear 1st Classnite!,</h3>
+      <h3 style="font-size:1.2rem;font-weight:800">Dear 1st Classnite,</h3>
       <p style="font-size:1.2rem;line-height:1.5">
        Your account <a href="#" style="color:#00f">${email}</a> has been successfully created at<br>
-      <a style="text-decoration:none;font-size:1.4rem;font-weight:600;color:#2c7e54;" href="https://www.1stclassmaterial.com">1st Class Material</a>
+      <a style="text-decoration:none;font-size:1.4rem;font-weight:600;color:#2c7e54;" href="https://www.1stclassmaterial.com">www.1stclassmaterial.com</a>
       <br>
        To activate your account, Please click on the link below
       </p>
@@ -108,8 +112,8 @@ auth.signUp = async (req, res) => {
       style="border:none;box-shadow:none;font-size:1.1rem;display:block;width:70%;border-radius:8px;background:#2c7e54;cursor:pointer;padding:0;margin-bottom:1rem">
       <a style="text-decoration:none;color:#fff;display:block;padding:0.75rem;border-radius:inherit;" href="${activationLink}">Activate Your Account</a>
       </button>
-      <small  style="font-size:1rem;margin-bottom:1rem;display:inline-block;">If the above link cannot be clicked, please copy it to your browser address bar to enter the access, the link is valid within 24 hours</small>
-      <address style="font-size:0.98rem">
+      <small  style="font-size:0.85rem;margin-bottom:1rem;display:inline-block;">If the above link cannot be clicked, please copy it to your browser address bar to enter the access, the link is valid within 24 hours</small>
+      <address style="font-size:0.98rem;font-weight:bold">
       	Best Regards,
       	<br>
       	1st Class Material Team
@@ -119,7 +123,8 @@ auth.signUp = async (req, res) => {
     };
     transporter.sendMail(mailOptions, (error, success) => {
       if (error) {
-        console.log(`Error sending Activation Email`, error);
+        console.log(`Error sending Activation Email`, error); 
+        return res.status(400).json(new ResponseMessage("error",400,`Error sending Activation Email`))
       }
 
       return res
@@ -128,7 +133,7 @@ auth.signUp = async (req, res) => {
           new ResponseMessage(
             "success",
             200,
-            "Activation link sent to your email",
+            "Activation link sent to your email, Please check your inbox or spam to activate your account",
             {
             accessToken,
             }
@@ -159,10 +164,10 @@ auth.activateUser = async (req, res) => {
       activationToken: token,
     });
     if (!user) {
-      console.log("user does not exist");
+      // console.log("user does not exist");
       return res
         .status(404)
-        .json(new ResponseMessage("error", 404, "invalid activation token"));
+        .json(new ResponseMessage("error", 404, "Invalid Activation Token"));
     }
     // Activate the user and save to the DB
     user.isActive = true;
@@ -171,10 +176,11 @@ auth.activateUser = async (req, res) => {
 
     // Generate Access token
     const accessToken = await newToken(user);
-
     // send email for account comfirmation
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_FROM,
         pass: process.env.EMAIL_PASSWORD,
@@ -184,7 +190,7 @@ auth.activateUser = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_FROM,
       to: user.email,
-      subject: "Customer Account Confirmation",
+      subject: "Account Confirmation",
       attachments: [
         {
           filename: "logo.png",
@@ -216,25 +222,16 @@ auth.activateUser = async (req, res) => {
     transporter.sendMail(mailOptions, (error, success) => {
       if (error) {
         console.log(`Error sending comfirmation Email`, error);
+        return res.status(400).json(new ResponseMessage("error",400,`Error sending comfirmation Email`))
       }
 
-      // return res
-      //   .status(200)
-      //   .json(new ResponseMessage("success", 200, "Confirmation email sent"));
       return res.status(200).json(
-        new ResponseMessage("success", 200, "user activated successfully", {
+        new ResponseMessage("success", 200, "You Account has been Activated Successfully.!", {
           accessToken,
         }),
       );
     });
 
-    // return res.redirect(redirectLink);
-
-    // return res.status(200).json(
-    //   new ResponseMessage("success", 200, "user activated successfully", {
-    //     accessToken,
-    //   }),
-    // );
   } catch (err) {
     return res
       .status(500)
@@ -243,8 +240,8 @@ auth.activateUser = async (req, res) => {
 };
 
 // Login a user
-// POST : localhost:8000/login
-auth.login = async (req, res) => {
+// POST : localhost:8000/auth/login
+ auth.login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -269,7 +266,7 @@ auth.login = async (req, res) => {
           new ResponseMessage(
             "error",
             400,
-            "Verification failed!\n use the link sent to your email and activate your account",
+            "Verification failed!\n use the link sent to your email to activate your account",
           ),
         );
     }
@@ -299,7 +296,7 @@ auth.login = async (req, res) => {
 // ***GET: http://localhost:8001/api/v1/user
 auth.getUser = async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, _id: id, profile, noOfContributions } = req.user;
+    const { fullName, email, phoneNumber, _id: id, profileImg, noOfContributions ,isActive,department,level} = req.user;
     return res.status(200).json(
       new ResponseMessage(
         "success",
@@ -310,8 +307,11 @@ auth.getUser = async (req, res) => {
           fullName,
           phoneNumber,
           email,
-          profile,
+          profileImg,
           noOfContributions,
+          isActive,
+          department,
+          level
         },
       ),
     );
@@ -347,8 +347,8 @@ auth.updateUser = async (req, res) => {
   }
 };
 
-// POST : localhost:8000/api/v1/upadte
 
+// POST : localhost:8000/api/v1/upadte
 // ////////////
 ///FORGOT PASSWORD
 auth.sendResetPassowrdToken = async (req, res) => {
@@ -394,7 +394,9 @@ auth.sendResetPassowrdToken = async (req, res) => {
 
     //Send the Generated token to the user email
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_FROM,
         pass: process.env.EMAIL_PASSWORD,
@@ -404,7 +406,7 @@ auth.sendResetPassowrdToken = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_FROM,
       to: user.email,
-      subject: "Customer Reset Password Token",
+      subject: "Reset Password Token",
       html: `
       <body style="padding:0.8rem">
       <h1 style="font-family:sans-serif;font-weight:600;font-size:1.8rem">You Requested for forgot Password</h1>
@@ -518,6 +520,28 @@ auth.verifyResetPasswordToken = async (req, res) => {
       .json(new ResponseMessage("error", 400, "Internal Server Error"));
   }
 };
+
+
+
+
+
+//DELETE: localhost:8000/api/v1/users
+auth.deleteUsers =  async(req,res) => {
+try{
+const deletedUsers = await userModel.deleteMany({});
+return res.status(204).json(new ResponseMessage("success",204,"Done deleting all users"))
+}
+catch(err){
+return res.status(400).json(new ResponseMessage("error",400,"Error deleting Users..!"))
+}
+}
+
+
+
+
+
+
+
 
 auth.checkingCrypt =  async(req,res) => {
   const token = generateActivationToken();
