@@ -266,7 +266,7 @@ auth.activateUser = async (req, res) => {
           new ResponseMessage(
             "error",
             400,
-            "Verification failed!\n use the link sent to your email and activate your account",
+            "Verification failed!\n use the link sent to your email to activate your account",
           ),
         );
     }
