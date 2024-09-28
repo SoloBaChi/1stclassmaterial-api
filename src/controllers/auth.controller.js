@@ -4,6 +4,22 @@ const validationResult = require("express-validator").validationResult,
   jwt = require("jsonwebtoken"),
   nodemailer = require("nodemailer");
 
+  // Multer Import
+  const multer = require('multer');
+  const path = require('path');
+
+// Set up Multer for image upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
+
 // const sendActivationToken = require("../services/sendActivationEmail");
 const generateActivationToken = require("../utils/generateActivationToken");
 const generateRandomAvatar = require("../utils/generateRandomAvatar");
@@ -25,6 +41,16 @@ const newToken = (user) =>
 // Verify Jwt Token
 const verifyToken = (token) =>
   jwt.verify(token, process.env.AUTHENTICATION_SECRET_KEY);
+
+// Refresh token for Password Reset and Updates
+const refreshToken = (user) =>
+  jwt.sign(
+    { id: user._id, email: user.email },
+    process.env.AUTHENTICATION_SECRET_KEY,
+    {
+    expiresIn:"5m"
+    }
+  );
 
 // Register a user
 auth.signUp = async (req, res) => {
@@ -296,7 +322,7 @@ auth.activateUser = async (req, res) => {
 // ***GET: http://localhost:8001/api/v1/user
 auth.getUser = async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, _id: id, profileImg, noOfContributions ,isActive,department,level} = req.user;
+    const { fullName, email, phoneNumber, _id: id, profileImg, noOfContributions ,isActive,department,level,joinedDate} = req.user;
     return res.status(200).json(
       new ResponseMessage(
         "success",
@@ -311,7 +337,8 @@ auth.getUser = async (req, res) => {
           noOfContributions,
           isActive,
           department,
-          level
+          level,
+          joinedDate
         },
       ),
     );
@@ -357,7 +384,7 @@ auth.sendResetPassowrdToken = async (req, res) => {
   if (!errors.isEmpty()) {
     return res
       .status(400)
-      .json(new ResponseMessage("error", 400, errors.array()));
+      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
   }
   try {
     // Get the user email
@@ -389,8 +416,8 @@ auth.sendResetPassowrdToken = async (req, res) => {
     );
 
     //Generate an access Token
-    const authToken = await newToken(updatedUser);
-    console.log(updatedUser);
+    const authToken = await refreshToken(updatedUser);
+    // console.log(updatedUser);
 
     //Send the Generated token to the user email
     const transporter = nodemailer.createTransport({
@@ -407,21 +434,41 @@ auth.sendResetPassowrdToken = async (req, res) => {
       from: process.env.EMAIL_FROM,
       to: user.email,
       subject: "Reset Password Token",
+      attachments: [
+        {
+          filename: "logo.png",
+          path: `${__dirname}/logo.png`,
+          cid: "save-logo.png",
+        },
+      ],
       html: `
       <body style="padding:0.8rem">
-      <h1 style="font-family:sans-serif;font-weight:600;font-size:1.8rem">You Requested for forgot Password</h1>
-     <p style="font-size:1.2rem;line-height:1.5">
+      <div style="display:block;text-align:center">
+       <img src="cid:save-logo.png" alt="logo image"/>
+      </div>
+      <h3 style="font-family:sans-serif;font-weight:600;font-size:1.4rem">Forgot Password Request</h3>
+       <p style="font-size:1.2rem;line-height:1.5">
       Use the token below to reset your password <br>
       </p>
       <button 
-      style="border:none;box-shadow:none;display:block;width:100%;border-radius:8px;background:#ef5533;cursor:pointer;padding:0">
-      <a style="text-decoration:none;color:#fff;border:1px solid red;display:block;padding:0.75rem;border-radius:inherit;font-weight:700;font-family:sans-serif;font-size:2rem;letter-spacing:5px">${authCode}</a></button>
+      style="border:none;box-shadow:none;display:block;width:100%;border-radius:8px;background:#2c7e54;cursor:pointer;padding:0">
+      <a style="text-decoration:none;color:#fff;display:block;padding:0.75rem;border-radius:inherit;font-weight:700;font-family:sans-serif;font-size:2rem;letter-spacing:5px">${authCode}</a>
+      </button>
+      <small style="font-style:italic;font-size:1rem;text-align:center;margin:1rem 0rem;display:inline-block">Note: OTP expires in 5 minutes</small>
+      <small style="font-size:0.85rem;margin-bottom:1rem;display:inline-block;">If you did not initiate this request , please kindly contact us or ignore this message</small>
+
+      <address style="font-size:0.98rem;font-weight:bold">
+      Best Regards,
+      <br>
+      1st Class Material Team
+       </address>
       </body>
       `,
     };
     transporter.sendMail(mailOptions, (error, success) => {
       if (error) {
         console.log(`Error sending comfirmation Email`, error);
+        return res.status(400).json(new ResponseMessage("error",400,`Error sending comfirmation Email`))
       }
 
       return res.status(200).json(
@@ -439,15 +486,15 @@ auth.sendResetPassowrdToken = async (req, res) => {
 
 // verify Reset password Token
 auth.verifyResetPasswordToken = async (req, res) => {
-  // Get the password to be updated
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
       .status(400)
-      .json(new ResponseMessage("error", 400, errors.array()));
+      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
   }
   try {
-    const { authToken, otp, password } = req.body;
+    const { authToken } = req.query;
+    const { otp } = req.body;
 
     // Decode the auth token using jwt and check for validity
     let decodedToken;
@@ -456,7 +503,7 @@ auth.verifyResetPasswordToken = async (req, res) => {
     } catch (err) {
       return res
         .status(401)
-        .json(new ResponseMessage("error", 401, "unverified token"));
+        .json(new ResponseMessage("error", 401, "Token has Expired..!"));
     }
     if (!decodedToken) {
       return res
@@ -496,30 +543,60 @@ auth.verifyResetPasswordToken = async (req, res) => {
         .status(400)
         .json(new ResponseMessage("error", 400, "invalid OTP !"));
     }
-    // update the user password
-    const updatedUser = await userModel.findByIdAndUpdate(
+
+       // Reset the authCode to null and Save it
+       user.authCode = null;
+       await user.save();
+   
+
+
+    return res.status(200).json(
+      new ResponseMessage("error", 200, "OTP verified successfully"));
+  } catch (err) {
+    return res.status(400)
+    .json(new ResponseMessage("error", 400, "Internal Server Error"));
+  }
+};
+
+
+
+// PUT : localhost:8000/api/v1/user/reset-password
+auth.confirmResetPassword = async(req,res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
+  }
+  try{
+    const {_id:userId} = req.user;
+    const { newPassword, confirmNewPassword } = req.body;
+
+    const user = userModel.findOne({_id:userId});
+    if(!user){
+      return res.status(400).json(new ResponseMessage("error",400,`user does not Exist..!`))
+    }
+
+    // check if the two passoword matches
+    if(newPassword !== confirmNewPassword){
+      return res.status(400).json(new ResponseMessage("error",400,`Passwords does not Match`))
+    }
+     // update the user password
+     await userModel.findByIdAndUpdate(
       { _id: userId },
-      { password: await bcrypt.hash(password, 10) },
+      { password: await bcrypt.hash(newPassword, 10) },
+      { confirmPassword: await bcrypt.hash(confirmNewPassword, 10) },
       { new: true },
     );
 
-    // Reset the authCode to null and Save it
-    user.authCode = null;
-    await user.save();
-
     return res.status(200).json(
-      new ResponseMessage("error", 200, "password updated successfully", {
-        updatedUser,
-      }),
+      new ResponseMessage("error", 200, "Password updated successfully"),
     );
-  } catch (err) {
-    // return res;
-    console
-      .log(err)
-      .status(400)
-      .json(new ResponseMessage("error", 400, "Internal Server Error"));
   }
-};
+  catch(err){
+    return res.status(400).json(new ResponseMessage("error",400,`Internal Server Errro.!`))
+  }
+}
 
 
 
