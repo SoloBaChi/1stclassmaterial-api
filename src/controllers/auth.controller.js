@@ -551,7 +551,7 @@ auth.verifyResetPasswordToken = async (req, res) => {
 
 
     return res.status(200).json(
-      new ResponseMessage("error", 200, "OTP verified successfully"));
+      new ResponseMessage("success", 200, "OTP verified successfully"));
   } catch (err) {
     return res.status(400)
     .json(new ResponseMessage("error", 400, "Internal Server Error"));
@@ -569,10 +569,10 @@ auth.confirmResetPassword = async(req,res) => {
       .json(new ResponseMessage("error", 400, errors.array()[0].msg));
   }
   try{
-    const {_id:userId} = req.user;
+    const { email } = req.query;
     const { newPassword, confirmNewPassword } = req.body;
 
-    const user = userModel.findOne({_id:userId});
+    const user = await userModel.findOne({email:email});
     if(!user){
       return res.status(400).json(new ResponseMessage("error",400,`user does not Exist..!`))
     }
@@ -582,15 +582,15 @@ auth.confirmResetPassword = async(req,res) => {
       return res.status(400).json(new ResponseMessage("error",400,`Passwords does not Match`))
     }
      // update the user password
-     await userModel.findByIdAndUpdate(
-      { _id: userId },
+     await userModel.findOneAndUpdate(
+      { email: user.email },
       { password: await bcrypt.hash(newPassword, 10) },
       { confirmPassword: await bcrypt.hash(confirmNewPassword, 10) },
       { new: true },
     );
 
     return res.status(200).json(
-      new ResponseMessage("error", 200, "Password updated successfully"),
+      new ResponseMessage("success", 200, "Password updated successfully"),
     );
   }
   catch(err){
