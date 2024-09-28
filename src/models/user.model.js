@@ -35,6 +35,10 @@ const UserSchema = new Schema(
       type: Number,
       default: 0,
     },
+    joinedDate:{
+    type:Date,
+    default:Date.now()
+     },
     activationToken: {
       type: String,
     },
