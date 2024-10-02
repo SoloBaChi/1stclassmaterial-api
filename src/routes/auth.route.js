@@ -115,7 +115,7 @@ router.put(
     max: 4,
   })
   .withMessage(
-      `Please enter the correct four digit code sent to your email`,
+      `Please enter the correct five digit code sent to your email`,
     ),
   verifyResetPasswordToken,
 );
