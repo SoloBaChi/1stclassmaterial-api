@@ -111,8 +111,8 @@ router.put(
   body("otp")
   .isString()
   .isLength({
-    min: 4,
-    max: 4,
+    min: 5,
+    max: 5,
   })
   .withMessage(
       `Please enter the correct five digit code sent to your email`,
