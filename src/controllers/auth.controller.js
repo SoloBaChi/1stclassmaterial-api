@@ -351,6 +351,12 @@ auth.getUser = async (req, res) => {
 
 // POST : localhost:8000/api/v1/upadteuser
 auth.updateUser = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
+  }
   const { email } = req.user;
   try {
     const user = await userModel.findOneAndUpdate({ email }, req.body, {
@@ -363,7 +369,7 @@ auth.updateUser = async (req, res) => {
 
     // return updated user
     return res.status(200).json(
-      new ResponseMessage("success", 200, "User updated Successfully...!", {
+      new ResponseMessage("success", 200, "Account updated Successfully...!", {
         user,
       }),
     );
@@ -599,19 +605,31 @@ auth.confirmResetPassword = async(req,res) => {
 }
 
 
-
-
-
-//DELETE: localhost:8000/api/v1/users
-auth.deleteUsers =  async(req,res) => {
+//DELETE A USER: localhost:8000/api/v1/users
+auth.deleteUser = async(req,res) => {
 try{
-const deletedUsers = await userModel.deleteMany({});
-return res.status(204).json(new ResponseMessage("success",204,"Done deleting all users"))
+const {_id:userId} = req.user;
+const deletedUser = await userModel.findByIdAndDelete(userId);
+return res.status(204).json(new ResponseMessage("success",204,"Account deleted Successfully.!", null))
 }
 catch(err){
 return res.status(400).json(new ResponseMessage("error",400,"Error deleting Users..!"))
 }
 }
+
+
+
+
+//DELETE ALL USERS: localhost:8000/api/v1/users
+// auth.deleteUsers =  async(req,res) => {
+// try{
+// const deletedUsers = await userModel.deleteMany({});
+// return res.status(204).json(new ResponseMessage("success",204,"Done deleting all users"))
+// }
+// catch(err){
+// return res.status(400).json(new ResponseMessage("error",400,"Error deleting Users..!"))
+// }
+// }
 
 
 

@@ -51,8 +51,8 @@ const protect = async (req, res, next) => {
     const user = await userModel.findOne({ _id: userId });
     if (!user) {
       return res
-        .status(401)
-        .json(new ResponseMessage("error",401,"Unauthorized Request..something went wrong"));
+        .status(404)
+        .json(new ResponseMessage("error",404,"Account does not Exist..!"));
     }
   
     req.user = user;
@@ -60,7 +60,7 @@ const protect = async (req, res, next) => {
     next();
   }
   catch(err){
-   res.status(500).json(new ResponseMessage("error",500,"Account does not Exist..!"))
+   res.status(500).json(new ResponseMessage("error",500,"OOps Unauthorized Request..!"))
   }
 };
 
