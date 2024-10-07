@@ -349,6 +349,10 @@ auth.getUser = async (req, res) => {
   }
 };
 
+
+/**
+ * UPDATE USER INFO
+ */
 // POST : localhost:8000/api/v1/upadteuser
 auth.updateUser = async (req, res) => {
   const errors = validationResult(req);
@@ -380,6 +384,116 @@ auth.updateUser = async (req, res) => {
   }
 };
 
+
+/**
+ * PUT Update User password
+ * Update locaclhost:8001/api/v1/update-password
+ * 
+ */
+auth.updateUserPassword = async(req,res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
+  }
+try{
+    const {newPassword,oldPassword,confirmPassword} = req.body;
+    const {email} = req.user;
+  
+
+  // Check if the user is existing
+  const user = await userModel.findOne({email:email});
+
+  if(!user){
+    return res.status(400).json(new ResponseMessage("error",400,"user does not exist...!"))
+  }
+  
+  //compare the current password with existing password
+   const isCorrectPassword =  await bcrypt.compare(oldPassword,user.password);
+   if(!isCorrectPassword){
+    return res.status(400).json(new ResponseMessage("error",400,"incorrect old password..!"))
+   }
+
+
+  //check if the new password is same as old password
+  if(newPassword === oldPassword){
+    return res.status(400).json(new ResponseMessage("error",400,"New Password is same as old password..!"))
+  }
+
+
+  //  check if the new password matches
+  if(newPassword !== confirmPassword){
+    return res.status(400).json(new ResponseMessage("error",400,"Password does not match..!"))
+  }
+
+  // Update the  user password
+  await userModel.findOneAndUpdate({email:email},{
+    password:await bcrypt.hash(newPassword,10),
+    confirmPassword: await bcrypt.hash(confirmPassword,10)
+  },
+    {
+      new:true
+    }
+  )
+
+  // Send Email
+  const transporter = nodemailer.createTransport({
+    host:process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT, // or 587 for TLS
+    secure: true, // true for 465, false for 587 
+    auth: {
+      user: process.env.EMAIL_FROM,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to:email,
+    subject: "Password Change",
+    attachments: [
+      {
+        filename: "logo.png",
+        path: `${__dirname}/logo.png`,
+        cid: "save-logo.png",
+      },
+    ],
+    html: `
+<body style="box-sizing:border-box;padding:2rem 5%;border:1px solid #ddd;border-radius:4px">
+<div style="display:block;text-align:center;width:100px;margin:auto">
+ <img src="cid:save-logo.png" style="width:100%" alt="logo image"/>
+</div>
+<h3 style="font-size:1.4rem;font-weight:800">Password Updated Successfully</h3>
+<h4 style="font-size:1.2rem;">Hi ${user.fullName}</h4>
+<p style="font-size:1rem;line-height:1.5;font-weight:600;">
+  Your password has successfully been updated at <a style="font-size:1rem;" href="www.1stclassmaterial.com">1st class material</a>
+</p>
+
+ <small style="font-size:0.85rem;margin-bottom:1rem;display:inline-block;">If you did not initiate this request , please kindly contact us or ignore this message</small>
+  <address style="font-size:0.98rem;font-weight:bold">
+    Best Regards,
+    <br>
+    1st Class Material Team
+  </address>
+</body>
+`,
+  };
+
+  // transporters
+  transporter.sendMail(mailOptions,(error,success) => {
+  if(error){
+    console.log("Error Sending Email",error);
+    return res.status(500).json(new ResponseMessage("error",500,"Error sending password update email"))
+  }
+   return res.status(200).json(new ResponseMessage("success",200,"Password Updated Succesfully...!"))
+  }) 
+}
+catch(err){
+  console.log(err);
+  return res.status(500).json(new ResponseMessage("error",500,"Internal Sever Error...!"))
+}
+}
 
 // POST : localhost:8000/api/v1/upadte
 // ////////////
