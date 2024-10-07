@@ -4,6 +4,7 @@ const {
   updateUser,
   getUser,
   deleteUsers,
+  deleteUser,
 } = require("../controllers/auth.controller");
 const { body } = require("express-validator");
 // const protect = require("../middlewares/auth.middleware");
@@ -32,10 +33,10 @@ router.get("/my-profile", getUser);
 
 ///////////////////////
 //**PUT METHODS */
-router.put("/updateuser",updateUser);
+router.put("/edit-user",updateUser);
 
 
 
-router.delete("/users",deleteUsers)
+router.delete("/delete-user",deleteUser)
 
 module.exports = router;

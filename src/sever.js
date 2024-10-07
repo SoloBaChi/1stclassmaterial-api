@@ -31,7 +31,6 @@ app.get("/",(req,res) => {
 
 /** OTHER ROUTES */
 // ADMIN
-app.use("/admin",userRouter);
 
 /**Auth Route */
 app.use('/auth/',authRouter);
