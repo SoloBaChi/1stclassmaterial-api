@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
+// const resultsModel = require("./result.model")
 
 const { Schema, model } = mongoose;
+
+
 
 const UserSchema = new Schema(
   {
@@ -39,6 +42,10 @@ const UserSchema = new Schema(
     type:Date,
     default:Date.now()
      },
+    checkedResults:{
+      type:Number,
+      default:0
+    },
     activationToken: {
       type: String,
     },
@@ -58,6 +65,6 @@ const UserSchema = new Schema(
   },
 );
 
-const userModel = model("user", UserSchema);
+const userModel = model("User", UserSchema);
 
 module.exports = userModel;
