@@ -322,7 +322,7 @@ auth.activateUser = async (req, res) => {
 // ***GET: http://localhost:8001/api/v1/user
 auth.getUser = async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, _id: id, profileImg, noOfContributions ,isActive,department,level,joinedDate} = req.user;
+    const { fullName, email, phoneNumber, _id: id, profileImg, noOfContributions ,isActive,department,level,joinedDate,checkedResults} = req.user;
     return res.status(200).json(
       new ResponseMessage(
         "success",
@@ -338,7 +338,8 @@ auth.getUser = async (req, res) => {
           isActive,
           department,
           level,
-          joinedDate
+          joinedDate,
+          checkedResults
         },
       ),
     );

@@ -4,7 +4,8 @@ const cors = require("cors");
 const morgan = require("morgan");
 const userRouter = require("./routes/user.route");
 const authRouter = require("./routes/auth.route");
-const contributorRouter =  require("./routes/contributor.route")
+const contributorRouter =  require("./routes/contributor.route");
+const resultRouter =  require("./routes/result.route")
 const { connectToDb } = require("./services/db.connection");
 const protect = require("./middlewares/auth.middleware");
 
@@ -40,6 +41,7 @@ app.use('/api',protect);
 
 /**User Route */
 app.use("/api/v1/user",userRouter);
+app.use("/api/v1/user/data",resultRouter);
 app.use("/api/v1/contributor",contributorRouter);
 
 
