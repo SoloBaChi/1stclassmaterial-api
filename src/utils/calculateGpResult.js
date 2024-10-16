@@ -12,7 +12,7 @@ for(let [grade,units] of records){
         case "B" : gradepoint = gradepointSystem === 5 ? 4 : 3; break;
         case "C" : gradepoint = gradepointSystem === 5 ? 3 : 2; break;
         case "D" : gradepoint = gradepointSystem === 5 ? 2 : 1; break;
-        case "E" : gradepoint = gradepointSystem === 5 ? 0 : 0; break;
+        case "E" : gradepoint = gradepointSystem === 5 ? 1 : 0; break;
         case "F" : gradepoint = 0; break;
         default:
         throw new Error("Please enter a valid grade");
