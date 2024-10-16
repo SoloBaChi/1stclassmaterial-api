@@ -133,7 +133,7 @@ const updateResult = async(req,res) => {
         return res.status(404).json(new ResponseMessage("error",404,`No result found with the given Id`))
      }
      
-     return res.status(200).json(new ResponseMessage("success",200,`done saving result`,{
+     return res.status(200).json(new ResponseMessage("success",200,`done saving data`,{
         result
      }))
     }
