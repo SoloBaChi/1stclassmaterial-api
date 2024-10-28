@@ -5,30 +5,26 @@ const { Schema , model} = mongoose;
 
 const ContributorSchema = new Schema({
  courseTitle:{
-    type:String,
-    required:true
+    type:String
  },
  courseType:{
-   type:String,
-   required:true
+   type:String
  },
  courseCode:{
-    type:String,
-    required:true,
+    type:String
  },
  department:{
     type:String,
-    required:true,
  },
- level:String,
+ level:{
+   type:Number,
+ },
  docURL:{
     type:String,
-    required:true,
     default:""
  },
- uploadedBy:{
-   type:mongoose.SchemaTypes.ObjectId,
-   // ref:"user"
+ contributor:{
+   type:mongoose.SchemaTypes.ObjectId
  }
 },
 {

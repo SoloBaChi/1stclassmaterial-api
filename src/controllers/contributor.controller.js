@@ -1,8 +1,8 @@
 // const url = require("url");
 const validationResult = require("express-validator").validationResult,
-  bcrypt = require("bcryptjs"),
   jwt = require("jsonwebtoken"),
   nodemailer = require("nodemailer");
+
 
 const userModel = require("../models/user.model");
 //*** local modules */
@@ -10,6 +10,7 @@ const ResponseMessage = require("../utils/responseMessage"),
   contributorModel = require("../models/contributor.model");
 
 const contributorController = {};
+
 
 const newToken = (user) =>
   jwt.sign(
@@ -32,7 +33,11 @@ contributorController.createBook = async (req, res) => {
   }
 
   try {
-    const { email, id } = req.user;
+    const { email, _id:userId } = req.user;
+
+    if(!req.file){
+      return res.status(404).json(new ResponseMessage("error",404,"No file found..!"))
+    }
     // check if the email exist
     const user = await userModel.findOne({ email: email });
     if (!user) {
@@ -47,6 +52,12 @@ contributorController.createBook = async (req, res) => {
         );
     }
 
+
+      // Use the uploaded file's path as the docURL
+      //  docURL = req.file ? req.file.path : null;
+      docURL = `https://1stclassmaterial-api.vercel.app/materials/${req.file.filename}`;
+
+
     const { courseTitle, courseType, courseCode, department, level, docURL } = req.body;
     const newBook = await contributorModel.create({
       courseTitle,
@@ -55,21 +66,23 @@ contributorController.createBook = async (req, res) => {
       department,
       level,
       docURL,
-      uploadedBy: id,
+      contributor: userId,
     });
 
-    // update the existing user
-    let count = user.noOfContributions["contributions"].length + 1;
-    user.noOfContributions["contributions"].push(count);
-    await user.save();
-    // console.log(user.noOfContributions["contributions"].length);
-    // console.log(user);
-
-    // return res.status(200).json(new ResponseMessage("success",200,"Book Created sucessfully",{newBook}))
+     // update the existing user
+     user.noOfContributions = (user.noOfContributions || 0) + 1;
+      await user.save();
 
     // Send notification email
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      // service: "gmail",
+      // auth: {
+      //   user: process.env.EMAIL_FROM,
+      //   pass: process.env.EMAIL_PASSWORD,
+      // },
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
       auth: {
         user: process.env.EMAIL_FROM,
         pass: process.env.EMAIL_PASSWORD,
@@ -92,9 +105,9 @@ contributorController.createBook = async (req, res) => {
       <div style="display:block;text-align:center">
        <img src="cid:save-logo.png" alt="logo image"/>
       </div>
-      <h3 style="font-size:1.2rem;font-weight:800">Hi ${user.fullName}</h3>
+      <h3 style="font-size:1.2rem;font-weight:800;text-transform:capitalize">Hi ${user.fullName}</h3>
       <p style="font-size:1.2rem;">
-       Thanks for Uploading <em> ${courseTitle} </em>with us 
+       Thanks for Uploading <em><strong> ${courseTitle} material </strong> </em>with us 
       </p>
       <p style="font-size:1.2rem;line-height:1.5">
        We really appreciate Your contribution! 
@@ -143,20 +156,21 @@ contributorController.getBooks = async (req, res) => {
 /*Get Books uploaded by a single user */
 //GET http://localhost:8001/api/v1/book
 contributorController.getBook = async (req, res) => {
-  const { bookId } =  req.params;
+  // const { bookId } =  req.params;
+  const {_id:userId} = req.user;
   try {
     // const { id } = req.user;
-    const book = await contributorModel.find({ uploadedBy: bookId });
-    if (!book) {
+    const books = await contributorModel.find({ contributor: userId });
+    if (!books) {
       return res
         .status(400)
-        .json(new ResponseMessage("error", 400, "Book does not exist!"));
+        .json(new ResponseMessage("error", 400, "No uploaded Book(s) found"));
     }
 
     return res.status(200).json(
       new ResponseMessage("success", 200, "Book Successfully Fetched!", {
-      totalBooks:book.length,
-       data:book,
+      totalBooks:books.length,
+       books,
       }),
     );
   } catch (err) {
@@ -176,7 +190,7 @@ contributorController.updateBook = async (req, res) => {
   const { bookId } =  req.params;
   try {
     // const { id } = req.user;
-    const book = await contributorModel.findOneAndUpdate({ uploadedBy: bookId }, req.body, {new:true});
+    const book = await contributorModel.findOneAndUpdate({ contributor: bookId }, req.body, {new:true});
     if (!book) {
       return res
         .status(400)
@@ -201,7 +215,7 @@ contributorController.updateBook = async (req, res) => {
 
 /**delete all Uploaded Books */
 //DELETE http://localhost:8001/api/v1/books
-contributorController.deleteMany = async(req,res) => {
+contributorController.deleteAll = async(req,res) => {
   const deletedBooks =  await contributorModel.deleteMany({});
 
   if(!deletedBooks){
@@ -216,13 +230,40 @@ contributorController.deleteMany = async(req,res) => {
 
 
 
-/**delete a Single Book */
+/**delete books by a  uset */
 //DELETE http://localhost:8001/api/v1/book
+contributorController.deleteMany =  async(req,res) => {
+  // const {bookId} =  req.params;
+  const {_id:userId} = req.user;
+  try {
+    // const { id } = req.user;
+    const book = await contributorModel.findOneAndDelete({ contributor: userId });
+    if (!book) {
+      return res
+        .status(400)
+        .json(new ResponseMessage("error", 400, "Book does not exist!"));
+    }
+
+    return res.status(204).json(
+      new ResponseMessage("success", 204, "Book Successfully deleted!", {
+       data:null,
+      }),
+    );
+  } catch (err) {
+    console.log(err)
+    return res
+      .status(500)
+      .json(new ResponseMessage("error", 500, "Internal Server Error..!"));
+  }
+}
+
+
+// Delete a Single Book
 contributorController.deleteOne =  async(req,res) => {
   const {bookId} =  req.params;
   try {
     // const { id } = req.user;
-    const book = await contributorModel.findOneAndDelete({ uploadedBy: bookId });
+    const book = await contributorModel.findOneAndDelete({ _id: bookId });
     if (!book) {
       return res
         .status(400)
