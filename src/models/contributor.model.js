@@ -17,7 +17,7 @@ const ContributorSchema = new Schema({
     type:String,
  },
  level:{
-   type:Number,
+   type:String,
  },
  docURL:{
     type:String,

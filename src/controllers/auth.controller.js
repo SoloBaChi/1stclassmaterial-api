@@ -4,21 +4,19 @@ const validationResult = require("express-validator").validationResult,
   jwt = require("jsonwebtoken"),
   nodemailer = require("nodemailer");
 
-// Multer Import
-const multer = require("multer");
 const path = require("path");
 
 // Set up Multer for image upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, "uploads/");
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + path.extname(file.originalname));
+//   },
+// });
 
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
 // const sendActivationToken = require("../services/sendActivationEmail");
 const generateActivationToken = require("../utils/generateActivationToken");
