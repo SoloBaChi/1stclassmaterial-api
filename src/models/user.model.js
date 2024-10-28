@@ -46,6 +46,10 @@ const UserSchema = new Schema(
       type:Number,
       default:0
     },
+    cgpaPoints:{
+      type:Number,
+      default:5
+    },
     activationToken: {
       type: String,
     },

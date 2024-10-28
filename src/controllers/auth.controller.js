@@ -4,18 +4,18 @@ const validationResult = require("express-validator").validationResult,
   jwt = require("jsonwebtoken"),
   nodemailer = require("nodemailer");
 
-  // Multer Import
-  const multer = require('multer');
-  const path = require('path');
+// Multer Import
+const multer = require("multer");
+const path = require("path");
 
 // Set up Multer for image upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
-  }
+  },
 });
 
 const upload = multer({ storage });
@@ -28,7 +28,6 @@ const generateRandomDigit = require("../utils/generateRandomDigit");
 //*** local modules */
 const ResponseMessage = require("../utils/responseMessage"),
   userModel = require("../models/user.model");
-
 
 const auth = {};
 
@@ -48,8 +47,8 @@ const refreshToken = (user) =>
     { id: user._id, email: user.email },
     process.env.AUTHENTICATION_SECRET_KEY,
     {
-    expiresIn:"5m"
-    }
+      expiresIn: "5m",
+    },
   );
 
 // Register a user
@@ -62,7 +61,15 @@ auth.signUp = async (req, res) => {
   }
 
   try {
-    const { fullName, email, password, confirmPassword, phoneNumber,department,level} = req.body;
+    const {
+      fullName,
+      email,
+      password,
+      confirmPassword,
+      phoneNumber,
+      department,
+      level,
+    } = req.body;
     // check if the email exist
     const existingUser = await userModel.findOne({ email: email });
     if (existingUser) {
@@ -91,7 +98,7 @@ auth.signUp = async (req, res) => {
       department,
       level,
       activationToken,
-      profileImg:await generateRandomAvatar(email)
+      profileImg: await generateRandomAvatar(email),
     });
 
     // Create an activation link
@@ -102,7 +109,7 @@ auth.signUp = async (req, res) => {
 
     // Send the Activation link to the email
     const transporter = nodemailer.createTransport({
-      host:process.env.EMAIL_HOST,
+      host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT, // or 587 for TLS
       secure: true, // true for 465, false for 587
       auth: {
@@ -149,22 +156,24 @@ auth.signUp = async (req, res) => {
     };
     transporter.sendMail(mailOptions, (error, success) => {
       if (error) {
-        console.log(`Error sending Activation Email`, error); 
-        return res.status(400).json(new ResponseMessage("error",400,`Error sending Activation Email`))
+        console.log(`Error sending Activation Email`, error);
+        return res
+          .status(400)
+          .json(
+            new ResponseMessage("error", 400, `Error sending Activation Email`),
+          );
       }
 
-      return res
-        .status(200)
-        .json(
-          new ResponseMessage(
-            "success",
-            200,
-            "Activation link sent to your email, Please check your inbox or spam to activate your account",
-            {
+      return res.status(200).json(
+        new ResponseMessage(
+          "success",
+          200,
+          "Activation link sent to your email, Please check your inbox or spam to activate your account",
+          {
             accessToken,
-            }
-          ),
-        );
+          },
+        ),
+      );
     });
     // console.log(newUser);
   } catch (err) {
@@ -174,7 +183,6 @@ auth.signUp = async (req, res) => {
       .json(new ResponseMessage("error", 500, "Internal Server Error"));
   }
 };
-
 
 //**  Activate user account
 //GET http://localhost:8001/activate?email=""&token=""
@@ -204,7 +212,7 @@ auth.activateUser = async (req, res) => {
     const accessToken = await newToken(user);
     // send email for account comfirmation
     const transporter = nodemailer.createTransport({
-      host:process.env.EMAIL_HOST,
+      host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT, // or 587 for TLS
       secure: true, // true for 465, false for 587
       auth: {
@@ -248,16 +256,28 @@ auth.activateUser = async (req, res) => {
     transporter.sendMail(mailOptions, (error, success) => {
       if (error) {
         console.log(`Error sending comfirmation Email`, error);
-        return res.status(400).json(new ResponseMessage("error",400,`Error sending comfirmation Email`))
+        return res
+          .status(400)
+          .json(
+            new ResponseMessage(
+              "error",
+              400,
+              `Error sending comfirmation Email`,
+            ),
+          );
       }
 
       return res.status(200).json(
-        new ResponseMessage("success", 200, "You Account has been Activated Successfully.!", {
-          accessToken,
-        }),
+        new ResponseMessage(
+          "success",
+          200,
+          "You Account has been Activated Successfully.!",
+          {
+            accessToken,
+          },
+        ),
       );
     });
-
   } catch (err) {
     return res
       .status(500)
@@ -267,7 +287,7 @@ auth.activateUser = async (req, res) => {
 
 // Login a user
 // POST : localhost:8000/auth/login
- auth.login = async (req, res) => {
+auth.login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -322,7 +342,20 @@ auth.activateUser = async (req, res) => {
 // ***GET: http://localhost:8001/api/v1/user
 auth.getUser = async (req, res) => {
   try {
-    const { fullName, email, phoneNumber, _id: id, profileImg, noOfContributions ,isActive,department,level,joinedDate,checkedResults} = req.user;
+    const {
+      fullName,
+      email,
+      phoneNumber,
+      _id: id,
+      profileImg,
+      noOfContributions,
+      isActive,
+      department,
+      level,
+      joinedDate,
+      checkedResults,
+      cgpaPoints
+    } = req.user;
     return res.status(200).json(
       new ResponseMessage(
         "success",
@@ -339,7 +372,8 @@ auth.getUser = async (req, res) => {
           department,
           level,
           joinedDate,
-          checkedResults
+          checkedResults,
+          cgpaPoints
         },
       ),
     );
@@ -349,7 +383,6 @@ auth.getUser = async (req, res) => {
       .json(new ResponseMessage("error", 404, "Internal Sever Error!"));
   }
 };
-
 
 /**
  * UPDATE USER INFO
@@ -385,82 +418,94 @@ auth.updateUser = async (req, res) => {
   }
 };
 
-
 /**
  * PUT Update User password
  * Update locaclhost:8001/api/v1/update-password
- * 
+ *
  */
-auth.updateUserPassword = async(req,res) => {
+auth.updateUserPassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
       .status(400)
       .json(new ResponseMessage("error", 400, errors.array()[0].msg));
   }
-try{
-    const {newPassword,oldPassword,confirmPassword} = req.body;
-    const {email} = req.user;
-  
+  try {
+    const { newPassword, oldPassword, confirmPassword } = req.body;
+    const { email } = req.user;
 
-  // Check if the user is existing
-  const user = await userModel.findOne({email:email});
+    // Check if the user is existing
+    const user = await userModel.findOne({ email: email });
 
-  if(!user){
-    return res.status(400).json(new ResponseMessage("error",400,"user does not exist...!"))
-  }
-  
-  //compare the current password with existing password
-   const isCorrectPassword =  await bcrypt.compare(oldPassword,user.password);
-   if(!isCorrectPassword){
-    return res.status(400).json(new ResponseMessage("error",400,"incorrect old password..!"))
-   }
-
-
-  //check if the new password is same as old password
-  if(newPassword === oldPassword){
-    return res.status(400).json(new ResponseMessage("error",400,"New Password is same as old password..!"))
-  }
-
-
-  //  check if the new password matches
-  if(newPassword !== confirmPassword){
-    return res.status(400).json(new ResponseMessage("error",400,"Password does not match..!"))
-  }
-
-  // Update the  user password
-  await userModel.findOneAndUpdate({email:email},{
-    password:await bcrypt.hash(newPassword,10),
-    confirmPassword: await bcrypt.hash(confirmPassword,10)
-  },
-    {
-      new:true
+    if (!user) {
+      return res
+        .status(400)
+        .json(new ResponseMessage("error", 400, "user does not exist...!"));
     }
-  )
 
-  // Send Email
-  const transporter = nodemailer.createTransport({
-    host:process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT, // or 587 for TLS
-    secure: true, // true for 465, false for 587 
-    auth: {
-      user: process.env.EMAIL_FROM,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
+    //compare the current password with existing password
+    const isCorrectPassword = await bcrypt.compare(oldPassword, user.password);
+    if (!isCorrectPassword) {
+      return res
+        .status(400)
+        .json(new ResponseMessage("error", 400, "incorrect old password..!"));
+    }
 
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to:email,
-    subject: "Password Change",
-    attachments: [
+    //check if the new password is same as old password
+    if (newPassword === oldPassword) {
+      return res
+        .status(400)
+        .json(
+          new ResponseMessage(
+            "error",
+            400,
+            "New Password is same as old password..!",
+          ),
+        );
+    }
+
+    //  check if the new password matches
+    if (newPassword !== confirmPassword) {
+      return res
+        .status(400)
+        .json(new ResponseMessage("error", 400, "Password does not match..!"));
+    }
+
+    // Update the  user password
+    await userModel.findOneAndUpdate(
+      { email: email },
       {
-        filename: "logo.png",
-        path: `${__dirname}/logo.png`,
-        cid: "save-logo.png",
+        password: await bcrypt.hash(newPassword, 10),
+        confirmPassword: await bcrypt.hash(confirmPassword, 10),
       },
-    ],
-    html: `
+      {
+        new: true,
+      },
+    );
+
+    // Send Email
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
+      auth: {
+        user: process.env.EMAIL_FROM,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Password Change",
+      attachments: [
+        {
+          filename: "logo.png",
+          path: `${__dirname}/logo.png`,
+          cid: "save-logo.png",
+        },
+      ],
+      html: `
 <body style="box-sizing:border-box;padding:2rem 5%;border:1px solid #ddd;border-radius:4px">
 <div style="display:block;text-align:center;width:100px;margin:auto">
  <img src="cid:save-logo.png" style="width:100%" alt="logo image"/>
@@ -479,22 +524,39 @@ try{
   </address>
 </body>
 `,
-  };
+    };
 
-  // transporters
-  transporter.sendMail(mailOptions,(error,success) => {
-  if(error){
-    console.log("Error Sending Email",error);
-    return res.status(500).json(new ResponseMessage("error",500,"Error sending password update email"))
+    // transporters
+    transporter.sendMail(mailOptions, (error, success) => {
+      if (error) {
+        console.log("Error Sending Email", error);
+        return res
+          .status(500)
+          .json(
+            new ResponseMessage(
+              "error",
+              500,
+              "Error sending password update email",
+            ),
+          );
+      }
+      return res
+        .status(200)
+        .json(
+          new ResponseMessage(
+            "success",
+            200,
+            "Password Updated Succesfully...!",
+          ),
+        );
+    });
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .json(new ResponseMessage("error", 500, "Internal Sever Error...!"));
   }
-   return res.status(200).json(new ResponseMessage("success",200,"Password Updated Succesfully...!"))
-  }) 
-}
-catch(err){
-  console.log(err);
-  return res.status(500).json(new ResponseMessage("error",500,"Internal Sever Error...!"))
-}
-}
+};
 
 // POST : localhost:8000/api/v1/upadte
 // ////////////
@@ -542,7 +604,7 @@ auth.sendResetPassowrdToken = async (req, res) => {
 
     //Send the Generated token to the user email
     const transporter = nodemailer.createTransport({
-      host:process.env.EMAIL_HOST,
+      host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT, // or 587 for TLS
       secure: true, // true for 465, false for 587
       auth: {
@@ -589,7 +651,15 @@ auth.sendResetPassowrdToken = async (req, res) => {
     transporter.sendMail(mailOptions, (error, success) => {
       if (error) {
         console.log(`Error sending comfirmation Email`, error);
-        return res.status(400).json(new ResponseMessage("error",400,`Error sending comfirmation Email`))
+        return res
+          .status(400)
+          .json(
+            new ResponseMessage(
+              "error",
+              400,
+              `Error sending comfirmation Email`,
+            ),
+          );
       }
 
       return res.status(200).json(
@@ -665,75 +735,86 @@ auth.verifyResetPasswordToken = async (req, res) => {
         .json(new ResponseMessage("error", 400, "invalid OTP !"));
     }
 
-       // Reset the authCode to null and Save it
-       user.authCode = null;
-       await user.save();
-   
+    // Reset the authCode to null and Save it
+    user.authCode = null;
+    await user.save();
 
-
-    return res.status(200).json(
-      new ResponseMessage("success", 200, "OTP verified successfully"));
+    return res
+      .status(200)
+      .json(new ResponseMessage("success", 200, "OTP verified successfully"));
   } catch (err) {
-    return res.status(400)
-    .json(new ResponseMessage("error", 400, "Internal Server Error"));
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, "Internal Server Error"));
   }
 };
 
-
-
 // PUT : localhost:8000/api/v1/user/reset-password
-auth.confirmResetPassword = async(req,res) => {
+auth.confirmResetPassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
       .status(400)
       .json(new ResponseMessage("error", 400, errors.array()[0].msg));
   }
-  try{
+  try {
     const { email } = req.query;
     const { newPassword, confirmNewPassword } = req.body;
 
-    const user = await userModel.findOne({email:email});
-    if(!user){
-      return res.status(400).json(new ResponseMessage("error",400,`user does not Exist..!`))
+    const user = await userModel.findOne({ email: email });
+    if (!user) {
+      return res
+        .status(400)
+        .json(new ResponseMessage("error", 400, `user does not Exist..!`));
     }
 
     // check if the two passoword matches
-    if(newPassword !== confirmNewPassword){
-      return res.status(400).json(new ResponseMessage("error",400,`Passwords does not Match`))
+    if (newPassword !== confirmNewPassword) {
+      return res
+        .status(400)
+        .json(new ResponseMessage("error", 400, `Passwords does not Match`));
     }
-     // update the user password
-     await userModel.findOneAndUpdate(
+    // update the user password
+    await userModel.findOneAndUpdate(
       { email: user.email },
       { password: await bcrypt.hash(newPassword, 10) },
       { confirmPassword: await bcrypt.hash(confirmNewPassword, 10) },
       { new: true },
     );
 
-    return res.status(200).json(
-      new ResponseMessage("success", 200, "Password updated successfully"),
-    );
+    return res
+      .status(200)
+      .json(
+        new ResponseMessage("success", 200, "Password updated successfully"),
+      );
+  } catch (err) {
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, `Internal Server Errro.!`));
   }
-  catch(err){
-    return res.status(400).json(new ResponseMessage("error",400,`Internal Server Errro.!`))
-  }
-}
-
+};
 
 //DELETE A USER: localhost:8000/api/v1/users
-auth.deleteUser = async(req,res) => {
-try{
-const {_id:userId} = req.user;
-const deletedUser = await userModel.findByIdAndDelete(userId);
-return res.status(204).json(new ResponseMessage("success",204,"Account deleted Successfully.!", null))
-}
-catch(err){
-return res.status(400).json(new ResponseMessage("error",400,"Error deleting Users..!"))
-}
-}
-
-
-
+auth.deleteUser = async (req, res) => {
+  try {
+    const { _id: userId } = req.user;
+    const deletedUser = await userModel.findByIdAndDelete(userId);
+    return res
+      .status(204)
+      .json(
+        new ResponseMessage(
+          "success",
+          204,
+          "Account deleted Successfully.!",
+          null,
+        ),
+      );
+  } catch (err) {
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, "Error deleting Users..!"));
+  }
+};
 
 //DELETE ALL USERS: localhost:8000/api/v1/users
 // auth.deleteUsers =  async(req,res) => {
@@ -746,20 +827,13 @@ return res.status(400).json(new ResponseMessage("error",400,"Error deleting User
 // }
 // }
 
-
-
-
-
-
-
-
-auth.checkingCrypt =  async(req,res) => {
+auth.checkingCrypt = async (req, res) => {
   const token = generateActivationToken();
-  console.log(token)
+  console.log(token);
   return res.status(200).json({
-    message:"success",
-    token:token
-  })
-}
+    message: "success",
+    token: token,
+  });
+};
 
 module.exports = auth;
