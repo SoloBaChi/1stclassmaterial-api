@@ -2,6 +2,7 @@ const express = require("express");
 const { json, urlencoded } = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
+const path = require("path");
 const userRouter = require("./routes/user.route");
 const authRouter = require("./routes/auth.route");
 const contributorRouter =  require("./routes/contributor.route");
@@ -19,6 +20,11 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.disable("x-powered-by"); //less hacker know about our stack
+
+// Static Files Middleware
+app.use('/materials', express.static(path.join(__dirname, 'uploads', 'contributions')));
+// const staticPath = path.join(__dirname, 'uploads', 'contributions');
+// console.log("Serving files from: ", staticPath); // Debugging output
 
 // ROUTES
 /**Default Route */

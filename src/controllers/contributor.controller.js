@@ -25,99 +25,113 @@ const verifyToken = (token) =>
 /**Upload a Book */
 //POST http://localhost:8001/api/v1/contributor/books
 contributorController.createBook = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-      return res.status(400).json(new ResponseMessage("error", 400, errors.array()[0].msg));
-  }
+   try {
+    const { email, _id:userId } = req.user;
 
-  try {
-      const { email, _id: userId } = req.user;
+    const { courseTitle, courseType, courseCode, department, level, docURL } = req.body;
 
-      // Check if the file was uploaded
-      if (!req.file) {
-          return res.status(400).json(new ResponseMessage("error", 400, "No file found..!"));
-      }
+    if(!req.file){
+      return res.status(400).json(new ResponseMessage("error",400,"No file found..!"))
+    }
+    // check if the email exist
+    const user = await userModel.findOne({ email: email });
+    if (!user) {
+      return res
+        .status(400)
+        .json(
+          new ResponseMessage(
+            "error",
+            400,
+            "You do not have an account with us..!",
+          ),
+        );
+    }
 
-      // Check if the email exists
-      const user = await userModel.findOne({ email: email });
-      if (!user) {
-          return res.status(400).json(new ResponseMessage("error", 400, "You do not have an account with us..!"));
-      }
 
-      // Use the uploaded file's path as the docURL
-      const docURL = `https://1stclassmaterial-api.vercel.app/materials/${req.file.filename}`;
-      const { courseTitle, courseType, courseCode, department, level } = req.body;
+     // Use the uploaded file's path as the docURL
+    // docURL = `https://1stclassmaterial-api.vercel.app/materials/${req.file.filename}`;
+    //  docURL = `https://1stclassmaterial-api.vercel.app/materials/${encodeURIComponent(req.file.filename)}`
+    const newBook = await contributorModel.create({
+      courseTitle,
+      courseType,
+      courseCode,
+      department,
+      level,
+      docURL:`https://1stclassmaterial-api.vercel.app/materials/${encodeURIComponent(req.file.filename)}`,
+      contributor: userId,
+    });
 
-      const newBook = await contributorModel.create({
-          courseTitle,
-          courseType,
-          courseCode,
-          department,
-          level,
-          docURL,
-          contributor: userId,
-      });
-
-      // Update the existing user
-      user.noOfContributions = (user.noOfContributions || 0) + 1;
+     // update the existing user
+     user.noOfContributions = (user.noOfContributions || 0) + 1;
       await user.save();
 
-      // Send notification email
-      const transporter = nodemailer.createTransport({
-          host: process.env.EMAIL_HOST,
-          port: process.env.EMAIL_PORT,
-          secure: true,
-          auth: {
-              user: process.env.EMAIL_FROM,
-              pass: process.env.EMAIL_PASSWORD,
-          },
-      });
+    // Send notification email
+    const transporter = nodemailer.createTransport({
+      host:process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // or 587 for TLS
+      secure: true, // true for 465, false for 587
+      auth: {
+        user: process.env.EMAIL_FROM,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
 
-      const mailOptions = {
-          from: process.env.EMAIL_FROM,
-          to: email,
-          subject: "Books Uploaded Successfully",
-          attachments: [
-              {
-                  filename: "logo.png",
-                  path: `${__dirname}/logo.png`,
-                  cid: "save-logo.png",
-              },
-          ],
-          html: `
-          <body style="padding:0.8rem;box-sizing:border-box;padding:2rem 2%">
-          <div style="display:block;text-align:center">
-              <img src="cid:save-logo.png" alt="logo image"/>
-          </div>
-          <h3 style="font-size:1.2rem;font-weight:800;text-transform:capitalize">Hi ${user.fullName}</h3>
-          <p style="font-size:1.2rem;">
-              Thanks for Uploading <em><strong>${courseTitle} material</strong></em> with us 
-          </p>
-          <p style="font-size:1.2rem;line-height:1.5">
-              We really appreciate Your contribution! 
-          </p>
-          <small style="font-size:1rem;margin-bottom:1rem;display:inline-block;">If you did not initiate this action, please kindly reply to this email..</small>
-          <address style="font-size:0.98rem">
-              Best Regards,
-              <br>
-              1st Class Material Team
-          </address>
-          </body>
-          `,
-      };
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: "Books Uploaded Successfully",
+      attachments: [
+        {
+          filename: "logo.png",
+          path: `${__dirname}/logo.png`,
+          cid: "save-logo.png",
+        },
+      ],
+      html: `
+      <body style="padding:0.8rem;box-sizing:border-box;padding:2rem 2%">
+      <div style="display:block;text-align:center">
+       <img src="cid:save-logo.png" alt="logo image"/>
+      </div>
+      <h3 style="font-size:1.2rem;font-weight:800;text-transform:capitalize">Hi ${user.fullName}</h3>
+      <p style="font-size:1.2rem;">
+       Thanks for Uploading <em><strong> ${courseTitle} material </strong> </em>with us 
+      </p>
+      <p style="font-size:1.2rem;line-height:1.5">
+       We really appreciate Your contribution! 
+      </p>
+      <small  style="font-size:1rem;margin-bottom:1rem;display:inline-block;">If you did not initiate this action , please kindly reply to this email..</small>
+      <address style="font-size:0.98rem">
+      	Best Regards,
+      	<br>
+      	1st Class Material Team
+      </address>
+      </body>
+        `,
+    };
+    transporter.sendMail(mailOptions, (error, success) => {
+      if (error) {
+        console.log(`Error sending Email`, error);
+      }
 
-      transporter.sendMail(mailOptions, (error) => {
-          if (error) {
-              console.log(`Error sending Email`, error);
-              return res.status(500).json(new ResponseMessage("error", 500, "Error sending email."));
-          }
-          return res.status(200).json(new ResponseMessage("success", 200, "Book Created successfully", { newBook }));
-      });
+      return res.status(200).json(
+        new ResponseMessage("success", 200, "Book Created sucessfully", {
+          newBook,
+        }),
+      );
+    });
+    // console.log(newUser);
   } catch (err) {
-      console.error("Error processing createBook:", err);
-      return res.status(500).json(new ResponseMessage("error", 500, `Internal Server Error: ${err}`));
+    console.log(err);
+    return res
+      .status(500)
+      .json(new ResponseMessage("error", 500, `Internal Server Error : ${err}`));
   }
 };
+
+
+
+
+
 
 
 /**Get all Uploaded Books */
@@ -216,7 +230,7 @@ contributorController.deleteMany =  async(req,res) => {
   const {_id:userId} = req.user;
   try {
     // const { id } = req.user;
-    const book = await contributorModel.findOneAndDelete({ contributor: userId });
+    const book = await contributorModel.deleteMany({ contributor: userId });
     if (!book) {
       return res
         .status(400)

@@ -18,39 +18,6 @@ const uploadBook = require("../config/multer/bookMulter");
 router
   .route("/books")
   .post(
-    body("courseTitle")
-      .isString()
-      .isLength({
-        min: 3,
-        max: 100,
-      })
-      .withMessage("Course Title Required...!"),
-
-    body("courseCode")
-      .isString()
-      .isLength({
-        min: 3,
-        max: 100,
-      })
-      .withMessage("Course Code Required...!"),
-
-    body("courseType")
-      .isString()
-      .isLength({
-        min: 3,
-        max: 100,
-      })
-      .withMessage("Course Type Required...!"),
-
-    body("department")
-      .isString()
-      .isLength({
-        min: 3,
-        max: 100,
-      })
-      .withMessage("Department Required...!"),
-
-    body("level").isNumeric().withMessage("Level is Required...!"),
     uploadBook.single("docURL"),
     createBook,
   )
