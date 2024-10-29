@@ -17,7 +17,7 @@ require("dotenv").config();
 const app = express();
 
 // Static Files Middleware
-app.use('/', express.static(path.join(__dirname,"public", 'uploads', 'contributions')));
+app.use('/materials', express.static(path.join(__dirname, 'uploads', 'contributions')));
 // const staticPath = path.join(__dirname, "public", 'uploads', 'contributions');
 // console.log("Serving files from: ", staticPath); // Debugging output
 app.use(cors({ origin: "*" }));
@@ -26,10 +26,8 @@ app.use(urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.disable("x-powered-by"); //less hacker know about our stack
 
-// Static Files Middleware
-app.use('/', express.static(path.join(__dirname,"public", 'uploads', 'contributions')));
-// const staticPath = path.join(__dirname, "public", 'uploads', 'contributions');
-// console.log("Serving files from: ", staticPath); // Debugging output
+
+
 
 // ROUTES
 /**Default Route */
