@@ -57,7 +57,7 @@ contributorController.createBook = async (req, res) => {
       courseCode,
       department,
       level,
-      docURL:`https://www.1stclassmaterial.com/${encodeURIComponent(req.file.filename)}`,
+      docURL:`https://1stclassmaterial-api.vercel.app/${encodeURIComponent(req.file.filename)}`,
       contributor: userId,
     });
 
