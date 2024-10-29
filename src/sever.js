@@ -51,7 +51,7 @@ app.use('/api',protect);
 /**User Route */
 app.use("/api/v1/user",userRouter);
 app.use("/api/v1/user/data",resultRouter);
-app.use("/api/v1/contributor",contributorRouter);
+app.use("/api/v1/user/contributor",contributorRouter);
 
 
 
