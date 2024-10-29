@@ -57,7 +57,7 @@ contributorController.createBook = async (req, res) => {
       courseCode,
       department,
       level,
-      docURL:`https://www.1stclassmaterial.com/materials/${encodeURIComponent(req.file.filename)}`,
+      docURL:`https://www.1stclassmaterial.com/${encodeURIComponent(req.file.filename)}`,
       contributor: userId,
     });
 
