@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "sequioa-api",
+  "name": "1stclassmaterial-api",
   "builds": [
     {
       "src": "index.js",
@@ -8,6 +8,10 @@
     }
   ],
   "routes": [
+    {
+      "src": "/materials/(.*)",
+      "dest": "/uploads/contributions/$1"
+    },
     {
       "src": "/(.*)",
       "dest": "/"
