@@ -230,6 +230,7 @@ contributorController.deleteMany =  async(req,res) => {
   const {_id:userId} = req.user;
   try {
     // const { id } = req.user;
+    const user = await userModel.findOne({_id:userId});
     const book = await contributorModel.deleteMany({ contributor: userId });
     if (!book) {
       return res
@@ -237,6 +238,9 @@ contributorController.deleteMany =  async(req,res) => {
         .json(new ResponseMessage("error", 400, "Book does not exist!"));
     }
 
+     user.noOfContributions = 0;
+     await user.save();
+      
     return res.status(204).json(
       new ResponseMessage("success", 204, "Book Successfully deleted!", {
        data:null,
