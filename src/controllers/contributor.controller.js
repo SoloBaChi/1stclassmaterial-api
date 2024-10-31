@@ -3,14 +3,12 @@ const validationResult = require("express-validator").validationResult,
   jwt = require("jsonwebtoken"),
   nodemailer = require("nodemailer");
 
-
 const userModel = require("../models/user.model");
 //*** local modules */
 const ResponseMessage = require("../utils/responseMessage"),
   contributorModel = require("../models/contributor.model");
 
 const contributorController = {};
-
 
 const newToken = (user) =>
   jwt.sign(
@@ -25,14 +23,19 @@ const verifyToken = (token) =>
 /**Upload a Book */
 //POST http://localhost:8001/api/v1/contributor/books
 contributorController.createBook = async (req, res) => {
-   try {
-    const { email, _id:userId } = req.user;
+  try {
+    const { email, _id: userId } = req.user;
 
-    const { courseTitle, courseType, courseCode, department, level, docURL } = req.body;
+    const {
+      courseTitle,
+      courseType,
+      courseCode,
+      department,
+      level,
+      docURL,
+      thumbNail,
+    } = req.body;
 
-    if(!req.file){
-      return res.status(400).json(new ResponseMessage("error",400,"No file found..!"))
-    }
     // check if the email exist
     const user = await userModel.findOne({ email: email });
     if (!user) {
@@ -47,27 +50,24 @@ contributorController.createBook = async (req, res) => {
         );
     }
 
-
-     // Use the uploaded file's path as the docURL
-    // docURL = `https://1stclassmaterial-api.vercel.app/materials/${req.file.filename}`;
-    //  docURL = `https://1stclassmaterial-api.vercel.app/materials/${encodeURIComponent(req.file.filename)}`
     const newBook = await contributorModel.create({
       courseTitle,
       courseType,
       courseCode,
       department,
       level,
-      docURL:`https://1stclassmaterial-api.vercel.app/materials/${encodeURIComponent(req.file.filename)}`,
+      docURL,
+      thumbNail,
       contributor: userId,
     });
 
-     // update the existing user
-     user.noOfContributions = (user.noOfContributions || 0) + 1;
-      await user.save();
+    // update the existing user
+    user.noOfContributions = (user.noOfContributions || 0) + 1;
+    await user.save();
 
     // Send notification email
     const transporter = nodemailer.createTransport({
-      host:process.env.EMAIL_HOST,
+      host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT, // or 587 for TLS
       secure: true, // true for 465, false for 587
       auth: {
@@ -94,7 +94,7 @@ contributorController.createBook = async (req, res) => {
       </div>
       <h3 style="font-size:1.2rem;font-weight:800;text-transform:capitalize">Hi ${user.fullName}</h3>
       <p style="font-size:1.2rem;">
-       Thanks for Uploading <em><strong> ${courseTitle} material </strong> </em>with us 
+       Thanks for Uploading <em><strong> ${courseTitle} </strong> material  </em>with us 
       </p>
       <p style="font-size:1.2rem;line-height:1.5">
        We really appreciate Your contribution! 
@@ -124,15 +124,11 @@ contributorController.createBook = async (req, res) => {
     console.log(err);
     return res
       .status(500)
-      .json(new ResponseMessage("error", 500, `Internal Server Error : ${err}`));
+      .json(
+        new ResponseMessage("error", 500, `Internal Server Error : ${err}`),
+      );
   }
 };
-
-
-
-
-
-
 
 /**Get all Uploaded Books */
 //GET http://localhost:8001/api/v1/books
@@ -141,7 +137,7 @@ contributorController.getBooks = async (req, res) => {
   return res.status(200).json(
     new ResponseMessage("success", 200, {
       totalBooks: books.length,
-      data:books,
+      data: books,
     }),
   );
 };
@@ -150,7 +146,7 @@ contributorController.getBooks = async (req, res) => {
 //GET http://localhost:8001/api/v1/book
 contributorController.getBook = async (req, res) => {
   // const { bookId } =  req.params;
-  const {_id:userId} = req.user;
+  const { _id: userId } = req.user;
   try {
     // const { id } = req.user;
     const books = await contributorModel.find({ contributor: userId });
@@ -162,28 +158,29 @@ contributorController.getBook = async (req, res) => {
 
     return res.status(200).json(
       new ResponseMessage("success", 200, "Book Successfully Fetched!", {
-      totalBooks:books.length,
-       books,
+        totalBooks: books.length,
+        books,
       }),
     );
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res
       .status(500)
       .json(new ResponseMessage("error", 500, "Internal Server Error..!"));
   }
 };
 
-
-
-
 /**update a Single Book */
 //PUT http://localhost:8001/api/v1/books
 contributorController.updateBook = async (req, res) => {
-  const { bookId } =  req.params;
+  const { bookId } = req.params;
   try {
     // const { id } = req.user;
-    const book = await contributorModel.findOneAndUpdate({ contributor: bookId }, req.body, {new:true});
+    const book = await contributorModel.findOneAndUpdate(
+      { contributor: bookId },
+      req.body,
+      { new: true },
+    );
     if (!book) {
       return res
         .status(400)
@@ -192,45 +189,49 @@ contributorController.updateBook = async (req, res) => {
 
     return res.status(200).json(
       new ResponseMessage("success", 200, "Book Successfully Updated!", {
-       data:book,
+        data: book,
       }),
     );
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res
       .status(500)
       .json(new ResponseMessage("error", 500, "Internal Server Error..!"));
   }
 };
 
-
-
-
 /**delete all Uploaded Books */
 //DELETE http://localhost:8001/api/v1/books
-contributorController.deleteAll = async(req,res) => {
-  const deletedBooks =  await contributorModel.deleteMany({});
+contributorController.deleteAll = async (req, res) => {
+  const deletedBooks = await contributorModel.deleteMany({});
 
-  if(!deletedBooks){
-    return res.status(404).json(new ResponseMessage("error",404,"No avaailable Books for deletion...!"))
+  if (!deletedBooks) {
+    return res
+      .status(404)
+      .json(
+        new ResponseMessage(
+          "error",
+          404,
+          "No avaailable Books for deletion...!",
+        ),
+      );
   }
 
-  return res.status(204).json(new ResponseMessage("success",204,"Successfully Deleted all Books",{
-    data:null
-  }))
-  
-}
-
-
+  return res.status(204).json(
+    new ResponseMessage("success", 204, "Successfully Deleted all Books", {
+      data: null,
+    }),
+  );
+};
 
 /**delete books by a  uset */
 //DELETE http://localhost:8001/api/v1/book
-contributorController.deleteMany =  async(req,res) => {
+contributorController.deleteMany = async (req, res) => {
   // const {bookId} =  req.params;
-  const {_id:userId} = req.user;
+  const { _id: userId } = req.user;
   try {
     // const { id } = req.user;
-    const user = await userModel.findOne({_id:userId});
+    const user = await userModel.findOne({ _id: userId });
     const book = await contributorModel.deleteMany({ contributor: userId });
     if (!book) {
       return res
@@ -238,26 +239,25 @@ contributorController.deleteMany =  async(req,res) => {
         .json(new ResponseMessage("error", 400, "Book does not exist!"));
     }
 
-     user.noOfContributions = 0;
-     await user.save();
-      
+    user.noOfContributions = 0;
+    await user.save();
+
     return res.status(204).json(
       new ResponseMessage("success", 204, "Book Successfully deleted!", {
-       data:null,
+        data: null,
       }),
     );
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res
       .status(500)
       .json(new ResponseMessage("error", 500, "Internal Server Error..!"));
   }
-}
-
+};
 
 // Delete a Single Book
-contributorController.deleteOne =  async(req,res) => {
-  const {bookId} =  req.params;
+contributorController.deleteOne = async (req, res) => {
+  const { bookId } = req.params;
   try {
     // const { id } = req.user;
     const book = await contributorModel.findOneAndDelete({ _id: bookId });
@@ -269,15 +269,15 @@ contributorController.deleteOne =  async(req,res) => {
 
     return res.status(204).json(
       new ResponseMessage("success", 204, "Book Successfully deleted!", {
-       data:null,
+        data: null,
       }),
     );
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res
       .status(500)
       .json(new ResponseMessage("error", 500, "Internal Server Error..!"));
   }
-}
+};
 
 module.exports = contributorController;
