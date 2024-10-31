@@ -792,6 +792,137 @@ auth.confirmResetPassword = async (req, res) => {
   }
 };
 
+
+/***********************
+ * Contact Us  || User feedback
+ */
+// POST : localhost:8001/auth/contactus
+auth.feedBackMessage = async(req,res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
+  }
+ try{
+  const { fullName, phoneNumber, email } = req.user;
+  const {message} =  req.body;
+
+  const user = await userModel.findOne({email});
+  if(!user){
+    return res.status(400).json(new ResponseMessage("error",400,`User does not exist.!`))
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT, // or 587 for TLS
+    secure: true, // true for 465, false for 587
+    auth: {
+      user: process.env.EMAIL_FROM,
+      pass: process.env.EMAIL_PASSWORD,
+      },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM,
+    to:process.env.GOOGLE_GMAIL,
+    subject: "New Feedback Message",
+    attachments: [
+      {
+        filename: "logo.png",
+        path: `${__dirname}/logo.png`,
+        cid: "save-logo.png",
+      },
+    ],
+    html: `
+<body style="box-sizing:border-box;padding:2rem 5%;border:1px solid #ddd;border-radius:4px">
+<div style="display:block;text-align:center;width:100px;margin:auto">
+ <img src="cid:save-logo.png" style="width:100%" alt="logo image"/>
+</div>
+<h3 style="font-size:1.4rem;font-weight:800">New Enquiry!</h3>
+<h4 style="font-size:1.2rem;">Good day Sir!</h4>
+<p style="font-size:1rem;line-height:1.5;font-weight:600;">
+  My Name is ${fullName} with ${phoneNumber} and email ${email}
+</p>
+<p style="font-size:1rem;line-height:1.5;font-weight:600;">
+ Message: ${message}
+</p>
+</body>
+`,
+  };
+
+
+  const mailOptions2 = {
+    from: process.env.EMAIL_FROM,
+    to:email,
+    subject: "Feedback Succesfully Sent",
+    attachments: [
+      {
+        filename: "logo.png",
+        path: `${__dirname}/logo.png`,
+        cid: "save-logo.png",
+      },
+    ],
+    html: `
+<body style="box-sizing:border-box;padding:2rem 5%;border:1px solid #ddd;border-radius:4px">
+<div style="display:block;text-align:center;width:100px;margin:auto">
+ <img src="cid:save-logo.png" style="width:100%" alt="logo image"/>
+</div>
+<h3 style="font-size:1.4rem;font-weight:800">Feedback Message Received</h3>
+<h4 style="font-size:1.2rem;">Hi ${fullName}</h4>
+<p style="font-size:1rem;line-height:1.5;font-weight:600;">
+  Your message has been sent to <a style="font-size:1rem;" href="https://www.1stclassmaterial.com">1st Class Matrial</a>
+</p>
+<p style="font-size:1rem;line-height:1.5;font-weight:600;">
+ Our Team will get back to you soon.
+</p>
+
+ <small style="font-size:0.85rem;margin-bottom:1rem;display:inline-block;">If you did not initiate this request , please kindly contact us or ignore this message</small>
+  <address style="font-size:0.98rem;font-weight:bold">
+    Best Regards,
+    <br>
+    1st Class Material Team
+  </address>
+</body>
+`,
+  };
+
+
+
+  // transporters
+  transporter.sendMail(mailOptions2,(error,success) => {
+  if(error){
+    console.log("Error Sending Email",error);
+    return res.status(500).json(new ResponseMessage("error",500,"Feedback not sent"))
+  }
+  })
+
+  transporter.sendMail(mailOptions, (error, success) => {
+    if (error) {
+      console.log(`Error sending Email`, error);
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ResponseMessage(
+          "success",
+          200,
+          "Your Feedback has been sent, We'll get back to you soon..!"
+        ),
+      );
+  }); 
+
+ }
+ catch(err){
+ console.log(err);
+ return res.status(500).json(new ResponseMessage("error",500,"Could not send Message..!"))
+ }
+
+}
+
+
+
 //DELETE A USER: localhost:8000/api/v1/users
 auth.deleteUser = async (req, res) => {
   try {
