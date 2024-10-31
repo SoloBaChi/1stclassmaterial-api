@@ -6,6 +6,7 @@ const {
   deleteUsers,
   deleteUser,
   updateUserPassword,
+  feedBackMessage,
 } = require("../controllers/auth.controller");
 const { body } = require("express-validator");
 // const protect = require("../middlewares/auth.middleware");
@@ -26,7 +27,17 @@ router.get("/my-profile", getUser);
 
 
 // POST METHOD
-
+ // Feeback Route
+ router.post("/feedback",
+  body("message")
+  .isString()
+  .isLength({
+    min: 10,
+    max: 500,
+  })
+  .withMessage("Message content must be greater than ten characters"),
+    feedBackMessage
+  )
 
 
 

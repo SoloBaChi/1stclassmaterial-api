@@ -94,6 +94,10 @@ body("password")
   login)
 
 
+  
+ 
+
+
 /** AcTIVATE A USER */
 router.get("/activate",activateUser);
 
