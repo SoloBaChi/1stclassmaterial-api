@@ -23,6 +23,10 @@ const ContributorSchema = new Schema({
     type:String,
     default:""
  },
+ thumbNail:{
+   type:String,
+   default:""
+ },
  contributor:{
    type:mongoose.SchemaTypes.ObjectId
  }

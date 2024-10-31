@@ -11,16 +11,13 @@ const {
   deleteAll,
   deleteOne,
 } = require("../controllers/contributor.controller");
-const uploadBook = require("../config/multer/bookMulter");
+// const uploadBook = require("../config/multer/bookMulter");
 
 
 /** GET BOOKS AND CREATE BOOKS */
 router
   .route("/books")
-  .post(
-    uploadBook.single("docURL"),
-    createBook,
-  )
+  .post(createBook)
 
   .get(getBooks)
   .delete(deleteAll);

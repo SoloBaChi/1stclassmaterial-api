@@ -7,7 +7,8 @@ const calculateGpResults = require("../utils/calculateGpResult");
 const calculateCGPA = async (req, res) => {
   try {
     const { _id: userId } = req.user;
-    //  const user = await userModel.findOne({_id:userId});
+
+     const user = await userModel.findOne({_id:userId});
     //  if(!user){
     //  return res.status(404).josn(new ResponseMessage("error",404,"user not found..!"))
     //  }
@@ -22,9 +23,14 @@ const calculateCGPA = async (req, res) => {
       userResults
         .map((user) => user.gradePoint)
         .reduce((acc, val) => acc + val, 0) / userResults.length;
-    console.log(gradepointSystem);
-    const cgpa = await calculateGpResults(records, gradepointSystem);
-    return res.status(200).json(
+         // console.log(gradepointSystem);
+       const cgpa = await calculateGpResults(records, gradepointSystem);
+
+      //  Reduce the user cgpa point
+       user.cgpaPoints -= 1;
+       await user.save();
+       
+       return res.status(200).json(
       new ResponseMessage("success", 200, `Done calculating CGPA..!`, {
         cgpa,
       }),
