@@ -387,11 +387,17 @@ auth.getUser = async (req, res) => {
  */
 // POST : localhost:8000/api/v1/upadteuser
 auth.updateUser = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
+  // const errors = validationResult(req);
+  // if (!errors.isEmpty()) {
+  //   return res
+  //     .status(400)
+  //     .json(new ResponseMessage("error", 400, errors.array()[0].msg));
+  // }
+    const isEmpty = (obj) => JSON.stringify(obj) === '{}';
+  if(isEmpty(req.body)){
     return res
-      .status(400)
-      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
+    .status(400)
+    .json(new ResponseMessage("error", 400, `Please Enter a Valid data and Continue`));
   }
   const { email } = req.user;
   try {
