@@ -135,7 +135,7 @@ contributorController.createBook = async (req, res) => {
 contributorController.getBooks = async (req, res) => {
   const books = await contributorModel.find({});
   return res.status(200).json(
-    new ResponseMessage("success", 200, {
+    new ResponseMessage("success", 200,`Fetched Books Successfully..!`, {
       totalBooks: books.length,
       data: books,
     }),
