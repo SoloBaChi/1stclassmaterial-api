@@ -137,7 +137,7 @@ contributorController.getBooks = async (req, res) => {
   return res.status(200).json(
     new ResponseMessage("success", 200,`Fetched Books Successfully..!`, {
       totalBooks: books.length,
-      data: books,
+      books,
     }),
   );
 };
@@ -158,7 +158,7 @@ contributorController.getBook = async (req, res) => {
 
     return res.status(200).json(
       new ResponseMessage("success", 200, "Book Successfully Fetched!", {
-        totalBooks: books.length,
+        totalBooks:books.length,
         books,
       }),
     );
