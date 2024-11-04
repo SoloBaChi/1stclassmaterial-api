@@ -267,6 +267,9 @@ contributorController.deleteOne = async (req, res) => {
         .json(new ResponseMessage("error", 400, "Book does not exist!"));
     }
 
+    user.noOfContributions = (user.noOfContributions - 1);
+    await user.save();
+
     return res.status(204).json(
       new ResponseMessage("success", 204, "Book Successfully deleted!", {
         data: null,
