@@ -283,4 +283,28 @@ contributorController.deleteOne = async (req, res) => {
   }
 };
 
+
+// Get users that have contribuited
+contributorController.getAllContributedUsers = async (req, res) => {
+  try {
+    const contributors = await contributorModel.find({});
+    
+    // Use a Set to collect unique contributor IDs
+    const uniqueUserIds = [...new Set(contributors.map(contributor => contributor.contributor.toString()))];
+    
+    // Fetch all unique users based on the collected IDs
+    const getContributedUsers = await Promise.all(
+      uniqueUserIds.map(id => userModel.findById(id))
+    );
+    
+    return res.status(200).json(new ResponseMessage("success", 200, "Fetched all contributed users", {
+      getContributedUsers
+    }));
+  } catch (err) {
+    return res.status(400).json(new ResponseMessage("error", 400, "Error fetching Contributors"));
+  }
+};
+
+
+
 module.exports = contributorController;
