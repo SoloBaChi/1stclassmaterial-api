@@ -67,17 +67,22 @@ contributorController.createBook = async (req, res) => {
 
     // Send notification email
     const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT, // or 587 for TLS
-      secure: true, // true for 465, false for 587
+      // host: process.env.EMAIL_HOST,
+      // port: process.env.EMAIL_PORT, // or 587 for TLS
+      // secure: true, // true for 465, false for 587
+      // auth: {
+      //   user: process.env.EMAIL_FROM,
+      //   pass: process.env.EMAIL_PASSWORD,
+      // },
+      service: "gmail",
       auth: {
-        user: process.env.EMAIL_FROM,
-        pass: process.env.EMAIL_PASSWORD,
+      user: process.env.GOOGLE_GMAIL,
+      pass: process.env.GOOGLE_GMAIL_PASSWORD,
       },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
+      from: process.env.GOOGLE_GMAIL,
       to: email,
       subject: "Books Uploaded Successfully",
       attachments: [
