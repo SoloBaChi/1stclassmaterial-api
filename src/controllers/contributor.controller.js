@@ -67,17 +67,22 @@ contributorController.createBook = async (req, res) => {
 
     // Send notification email
     const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT, // or 587 for TLS
-      secure: true, // true for 465, false for 587
+      // host: process.env.EMAIL_HOST,
+      // port: process.env.EMAIL_PORT, // or 587 for TLS
+      // secure: true, // true for 465, false for 587
+      // auth: {
+      //   user: process.env.EMAIL_FROM,
+      //   pass: process.env.EMAIL_PASSWORD,
+      // },
+      service: "gmail",
       auth: {
-        user: process.env.EMAIL_FROM,
-        pass: process.env.EMAIL_PASSWORD,
+      user: process.env.GOOGLE_GMAIL,
+      pass: process.env.GOOGLE_GMAIL_PASSWORD,
       },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
+      from: process.env.GOOGLE_GMAIL,
       to: email,
       subject: "Books Uploaded Successfully",
       attachments: [
@@ -267,6 +272,9 @@ contributorController.deleteOne = async (req, res) => {
         .json(new ResponseMessage("error", 400, "Book does not exist!"));
     }
 
+    user.noOfContributions = (user.noOfContributions - 1);
+    await user.save();
+
     return res.status(204).json(
       new ResponseMessage("success", 204, "Book Successfully deleted!", {
         data: null,
@@ -279,5 +287,29 @@ contributorController.deleteOne = async (req, res) => {
       .json(new ResponseMessage("error", 500, "Internal Server Error..!"));
   }
 };
+
+
+// Get users that have contribuited
+contributorController.getAllContributedUsers = async (req, res) => {
+  try {
+    const contributors = await contributorModel.find({});
+    
+    // Use a Set to collect unique contributor IDs
+    const uniqueUserIds = [...new Set(contributors.map(contributor => contributor.contributor.toString()))];
+    
+    // Fetch all unique users based on the collected IDs
+    const getContributedUsers = await Promise.all(
+      uniqueUserIds.map(id => userModel.findById(id))
+    );
+    
+    return res.status(200).json(new ResponseMessage("success", 200, "Fetched all contributed users", {
+      getContributedUsers
+    }));
+  } catch (err) {
+    return res.status(400).json(new ResponseMessage("error", 400, "Error fetching Contributors"));
+  }
+};
+
+
 
 module.exports = contributorController;

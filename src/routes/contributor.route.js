@@ -10,6 +10,7 @@ const {
   updateBook,
   deleteAll,
   deleteOne,
+  getAllContributedUsers,
 } = require("../controllers/contributor.controller");
 // const uploadBook = require("../config/multer/bookMulter");
 
@@ -27,5 +28,9 @@ router.route("/book").get(getBook).delete(deleteMany);
 
 /** GET, UPDATE and DELETE a Single Book */
 router.route("/book/:bookId").put(updateBook).delete(deleteOne);
+
+
+// Get all contributed users
+router.get("/books/all-contributors",getAllContributedUsers);
 
 module.exports = router;
