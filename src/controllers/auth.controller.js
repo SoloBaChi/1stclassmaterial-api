@@ -141,6 +141,7 @@ auth.signUp = async (req, res) => {
       style="border:none;box-shadow:none;font-size:1.1rem;display:block;width:70%;border-radius:8px;background:#2c7e54;cursor:pointer;padding:0;margin-bottom:1rem">
       <a style="text-decoration:none;color:#fff;display:block;padding:0.75rem;border-radius:inherit;" href="${activationLink}">Activate Your Account</a>
       </button>
+      <a style="margin-bottom:1rem" href="${activationLink}">${activationLink}</a>
       <small  style="font-size:0.85rem;margin-bottom:1rem;display:inline-block;">If the above link cannot be clicked, please copy it to your browser address bar to enter the access, the link is valid within 24 hours</small>
       <address style="font-size:0.98rem;font-weight:bold">
       	Best Regards,
