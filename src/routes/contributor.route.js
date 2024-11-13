@@ -18,7 +18,24 @@ const {
 /** GET BOOKS AND CREATE BOOKS */
 router
   .route("/books")
-  .post(createBook)
+  .post(
+  body("docURL")
+  .isURL()
+  .withMessage("Please upload a valid document"),
+  body("thumbNail")
+  .isURL()
+  .withMessage("Please upload a book cover"),
+  body("courseCode")
+    .trim()
+    .matches(/^[A-Z]{2,3}\s\d{3}$/) // Example pattern for something like "CS101"
+    .withMessage("Course code should be in the format 'ABC 123'"),
+
+  body("courseTitle")
+    .trim()
+    .isLength({ min: 3, max: 100 })
+    .withMessage("Course title should be between 3 and 100 characters long"),
+
+  createBook)
 
   .get(getBooks)
   .delete(deleteAll);

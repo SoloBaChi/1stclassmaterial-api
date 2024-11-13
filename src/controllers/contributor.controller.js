@@ -23,6 +23,12 @@ const verifyToken = (token) =>
 /**Upload a Book */
 //POST http://localhost:8001/api/v1/contributor/books
 contributorController.createBook = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ResponseMessage("error", 400, errors.array()[0].msg));
+  }
   try {
     const { email, _id: userId } = req.user;
 
