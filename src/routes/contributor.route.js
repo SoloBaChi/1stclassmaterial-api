@@ -27,7 +27,7 @@ router
   .withMessage("Please upload a book cover"),
   body("courseCode")
     .trim()
-    .matches(/^[A-Z]{2,3}\s\d{3}$/) // Example pattern for something like "CS101"
+    .matches(/^[A-Z]{3,8}\s\d{3,6}$/) // Example pattern for something like "CS101"
     .withMessage("Course code should be in the format 'ABC 123'"),
 
   body("courseTitle")
