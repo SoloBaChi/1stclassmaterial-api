@@ -214,6 +214,9 @@ contributorController.updateBook = async (req, res) => {
 /**delete all Uploaded Books */
 //DELETE http://localhost:8001/api/v1/books
 contributorController.deleteAll = async (req, res) => {
+  const{_id:userId} = req.user;
+  const user = await userModel.findOne({ _id: userId });
+  
   const deletedBooks = await contributorModel.deleteMany({});
 
   if (!deletedBooks) {
@@ -227,6 +230,9 @@ contributorController.deleteAll = async (req, res) => {
         ),
       );
   }
+
+  user.noOfContributions = 0;
+  await user.save();
 
   return res.status(204).json(
     new ResponseMessage("success", 204, "Successfully Deleted all Books", {
