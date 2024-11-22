@@ -301,7 +301,7 @@ contributorController.deleteOne = async (req, res) => {
 };
 
 
-// Get users that have contribuited
+// Get All users that have contribuited
 contributorController.getAllContributedUsers = async (req, res) => {
   try {
     const contributors = await contributorModel.find({});
@@ -313,9 +313,14 @@ contributorController.getAllContributedUsers = async (req, res) => {
     const getContributedUsers = await Promise.all(
       uniqueUserIds.map(id => userModel.findById(id))
     );
+
+
+    // Sort the contributors according to the noOfContributions// Sort users based on their number of contributions (highest to lowest)
+    const sortedContributors = getContributedUsers.sort((a, b) => b.noOfContributions - a.noOfContributions);
     
     return res.status(200).json(new ResponseMessage("success", 200, "Fetched all contributed users", {
-      getContributedUsers
+      totalContributors:sortedContributors.length,
+      sortedContributors,
     }));
   } catch (err) {
     return res.status(400).json(new ResponseMessage("error", 400, "Error fetching Contributors"));
