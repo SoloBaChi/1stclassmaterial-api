@@ -320,7 +320,7 @@ contributorController.getAllContributedUsers = async (req, res) => {
     
     return res.status(200).json(new ResponseMessage("success", 200, "Fetched all contributed users", {
       totalContributors:sortedContributors.length,
-      sortedContributors,
+      contributors:sortedContributors,
     }));
   } catch (err) {
     return res.status(400).json(new ResponseMessage("error", 400, "Error fetching Contributors"));
