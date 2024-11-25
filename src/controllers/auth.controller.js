@@ -238,7 +238,7 @@ auth.activateUser = async (req, res) => {
        <br/>
        Your account has been activated Successfully!
       </p>
-      <p style="font-size:1.2rem">Kindly visit <a style="text-decoration:none;color:#3a8d97;padding:0.75rem;border-radius:inherit;font-size:1.2rem" href="https://www.1stclassmaterial.com/login.html">1st Class Material </a> to continue with your dashboard</p>
+      <p style="font-size:1.2rem">Kindly visit <a style="text-decoration:none;color:#3a8d97;padding:0.75rem;border-radius:inherit;font-size:1.2rem" href="https://www.1stclassmaterial.com/login">1st Class Material </a> to continue with your dashboard</p>
       <small  style="font-size:1.2rem;margin-bottom:1rem;display:inline-block;">If you did not initiate this action , please kindly reply to this email..</small>
       <address style="font-size:0.98rem">
       	Best Regards,
