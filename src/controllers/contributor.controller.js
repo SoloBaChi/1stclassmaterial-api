@@ -160,7 +160,7 @@ contributorController.getBook = async (req, res) => {
   const { _id: userId } = req.user;
   try {
     // const { id } = req.user;
-    const books = await contributorModel.find({ contributor: userId });
+    const books = (await contributorModel.find({ contributor: userId })).reverse();
     if (!books) {
       return res
         .status(400)
