@@ -7,6 +7,7 @@ const {
   deleteUser,
   updateUserPassword,
   feedBackMessage,
+  getUsers,
 } = require("../controllers/auth.controller");
 const { body } = require("express-validator");
 // const protect = require("../middlewares/auth.middleware");
@@ -23,6 +24,7 @@ const { checkingCrypt } = require("../controllers/auth.controller");
 //**GET METHODS */
 router.get("/check-token",checkingCrypt)
 router.get("/my-profile", getUser);
+router.get("/users",getUsers);
 
 
 

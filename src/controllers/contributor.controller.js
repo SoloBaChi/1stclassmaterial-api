@@ -144,7 +144,7 @@ contributorController.createBook = async (req, res) => {
 /**Get all Uploaded Books */
 //GET http://localhost:8001/api/v1/books
 contributorController.getBooks = async (req, res) => {
-  const books = await contributorModel.find({});
+  const books = (await contributorModel.find({})).reverse();
   return res.status(200).json(
     new ResponseMessage("success", 200,`Fetched Books Successfully..!`, {
       totalBooks: books.length,
@@ -213,35 +213,35 @@ contributorController.updateBook = async (req, res) => {
 
 /**delete all Uploaded Books */
 //DELETE http://localhost:8001/api/v1/books
-contributorController.deleteAll = async (req, res) => {
-  const{_id:userId} = req.user;
-  const user = await userModel.findOne({ _id: userId });
+// contributorController.deleteAll = async (req, res) => {
+//   const{_id:userId} = req.user;
+//   const user = await userModel.findOne({ _id: userId });
   
-  const deletedBooks = await contributorModel.deleteMany({});
+//   const deletedBooks = await contributorModel.deleteMany({});
 
-  if (!deletedBooks) {
-    return res
-      .status(404)
-      .json(
-        new ResponseMessage(
-          "error",
-          404,
-          "No avaailable Books for deletion...!",
-        ),
-      );
-  }
+//   if (!deletedBooks) {
+//     return res
+//       .status(404)
+//       .json(
+//         new ResponseMessage(
+//           "error",
+//           404,
+//           "No avaailable Books for deletion...!",
+//         ),
+//       );
+//   }
 
-  user.noOfContributions = 0;
-  await user.save();
+//   user.noOfContributions = 0;
+//   await user.save();
 
-  return res.status(204).json(
-    new ResponseMessage("success", 204, "Successfully Deleted all Books", {
-      data: null,
-    }),
-  );
-};
+//   return res.status(204).json(
+//     new ResponseMessage("success", 204, "Successfully Deleted all Books", {
+//       data: null,
+//     }),
+//   );
+// };
 
-/**delete books by a  uset */
+/**delete books by a  User */
 //DELETE http://localhost:8001/api/v1/book
 contributorController.deleteMany = async (req, res) => {
   // const {bookId} =  req.params;
