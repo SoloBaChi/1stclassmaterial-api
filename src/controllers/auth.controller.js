@@ -379,6 +379,36 @@ auth.getUser = async (req, res) => {
   }
 };
 
+
+//GET ALL USERS
+auth.getUsers = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if(!user?.isAdmin){
+      return res.status(400).json(new ResponseMessage("error",400,"Only An Admin can Perform this Operation"));
+    }
+
+    const allUsers = (await userModel.find({})).reverse();
+
+    return res.status(200).json(
+      new ResponseMessage(
+        "success",
+        200,
+        "Successfully Fetched All Users",
+        {
+          totalUsers:allUsers.length,
+          allUsers
+        }
+      ),
+    );
+  } catch (err) {
+    return res
+      .status(404)
+      .json(new ResponseMessage("error", 404, "Internal Sever Error!"));
+  }
+};
+
 /**
  * UPDATE USER INFO
  */

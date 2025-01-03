@@ -38,10 +38,12 @@ router
   createBook)
 
   .get(getBooks)
-  .delete(deleteAll);
+  // .delete(deleteAll);
 
 // Get, Delete Books Uploaded by a single User
-router.route("/book").get(getBook).delete(deleteMany);
+router.route("/book")
+.get(getBook)
+// .delete(deleteMany)
 
 /** GET, UPDATE and DELETE a Single Book */
 router.route("/book/:bookId").put(updateBook).delete(deleteOne);
