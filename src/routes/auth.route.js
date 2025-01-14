@@ -17,6 +17,7 @@ const { body } = require("express-validator");
 router.post("/register",
 
 body("fullName")
+.trim()
 .isString()
 .isLength({
   min: 6,
@@ -29,6 +30,7 @@ body("email")
 .withMessage("Please enter a valid email address"),
 
 body("password")
+.trim()
 .isStrongPassword({
   minLength: 8,
   minUppercase: 1,
@@ -40,6 +42,7 @@ body("password")
 ),
 
 body("confirmPassword")
+.trim()
 .isStrongPassword({
   minLength: 8,
   minUppercase: 1,
@@ -51,13 +54,15 @@ body("confirmPassword")
 ),
 
 body("phoneNumber")
+.trim()
 .isMobilePhone()
 .withMessage('Please enter a valid phone number'),
 
 body("department")
+.trim()
 .isString()
 .isLength({
-  min: 6,
+  min: 2,
   max: 100,
 })
 .withMessage("Please enter a valid department"),

@@ -9,6 +9,7 @@ const UserSchema = new Schema(
   {
     fullName: {
       type: String,
+      trim:true
     },
     email: {
       type: String,
@@ -16,15 +17,19 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
+      trim:true
     },
     confirmPassword: {
-      type: String
+      type: String,
+      trim:true
     },
     phoneNumber: {
       type: Number,
+      trim:true,
     },
     department: {
       type: String,
+      trim:true,
     },
     level: {
       type:Number,
